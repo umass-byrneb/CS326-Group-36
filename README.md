@@ -1,8 +1,8 @@
 # College Clutter-Group 36
 ## Table of Contents
 
-- [Project-Description](#Project-Description)
-- [Team-Members](#Team-Members)
+- [Project Description](#Project-Description)
+- [Team Members](#Team-Members)
 
 ## Project Description 
 **Problem:** Every year students buy new furniture every year to offset costs of storage and leading to tons of waste at the end of every semester.\
