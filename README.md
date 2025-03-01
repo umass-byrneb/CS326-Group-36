@@ -14,7 +14,7 @@
 **Brandon Byrne**-Senior Computer Science Major    
 bbyrne@umass.edu  
 **Background knowledge:** C,C++, Python, Java, js and React  
-**Other Interests:** :walking: Hiking(46er) with my dogs :dog2:  
+**Other Interests:** Hiking(46er) with my dogs :walking:🐕:dog2:  
 **Reflection:** I believe in this website as I personally have had these problems in the past and think it would improve student life at the end/beginning of the semester and decrease waste on campus
 
 
