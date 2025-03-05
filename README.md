@@ -17,7 +17,11 @@ bbyrne@umass.edu
 **Other Interests:** Hiking(46er) with my dogs :walking:🐕:dog2:  
 **Reflection:** I believe in this website as I personally have had these problems in the past and think it would improve student life at the end/beginning of the semester and decrease waste on campus
 
-
+**Sargam Nohria**-Senior Computer Science & Anthropology Major    
+snohria@umass.edu  
+**Background knowledge:** C, Python, Java, HTML, CSS 
+**Other Interests:** running, rock climbing, baking 
+**Reflection:** I am interested in increasing students' accessability to affordable housing items and a more efficient exchange of existing resources. I believe this website will help people live well. 
 
 
 
