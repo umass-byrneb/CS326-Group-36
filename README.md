@@ -19,9 +19,9 @@ bbyrne@umass.edu
 
 **Sargam Nohria**-Senior Computer Science & Anthropology Major    
 snohria@umass.edu  
-**Background knowledge:** C, Python, Java, HTML, CSS 
-**Other Interests:** running, rock climbing, baking 
-**Reflection:** I am interested in increasing students' accessability to affordable housing items and a more efficient exchange of existing resources. I believe this website will help people live well. 
+**Background knowledge:** C, Python, Java, HTML, CSS   
+**Other Interests:** running, rock climbing, baking    
+**Reflection:** I am interested in increasing students' accessability to affordable housing items and a more efficient exchange of existing resources. I believe this website will help people live well.    
 
 
 
