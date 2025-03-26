@@ -3,7 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main  # Adjust if your main branch has a different name
+      - main 
 
 jobs:
   deploy:
@@ -12,11 +12,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Ensures full repository history is available
+          fetch-depth: 0  
           
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./frontend  # Folder to deploy
-          publish_branch: gh-pages  # Branch where the site will be published
+          publish_dir: ./frontend  
+          publish_branch: gh-pages  
