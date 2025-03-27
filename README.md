@@ -21,7 +21,13 @@ bbyrne@umass.edu
 snohria@umass.edu  
 **Background knowledge:** C, Python, Java, HTML, CSS   
 **Other Interests:** running, rock climbing, baking    
-**Reflection:** I am interested in increasing students' accessability to affordable housing items and a more efficient exchange of existing resources. I believe this website will help people live well.    
+**Reflection:** I am interested in increasing students' accessability to affordable housing items and a more efficient exchange of existing resources. I believe this website will help people live well. 
+
+**Simran Lekhwani**-Senio Computer Science Major 
+slekhwani@umass.edu
+**Background Knowledge:** C, C++, Python, Java, Go, JS, SQL
+**Other Interests:** Dancing, Rock climbing, Reading 
+**Reflection:** As a student who has lived off campus and is graduating as well, this application would be very helpful to reduce some stress associated with moving and relocating by introducing a platform that allows one to communicate with other individuals  who are interested in selling or buying furniture. 
 
 
 
