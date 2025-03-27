@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Storage Page - College Clutter</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+  <header class="navbar">
+    <a href="index.html" class="logo">CollegeClutter</a>
+    <nav>
+      <a href="buy.html">Buy</a>
+      <a href="sell.html">Sell</a>
+      <a href="storage.html">Storage</a>
+      <a href="user.html">User</a>
+    </nav>
+  </header>
+  
+  <section class="main-section">
+    <div class="flex-container">
+      <aside class="sidebar">
+        <h3>Keywords</h3>
+        <div class="tags">
+          <span class="tag">Garage <span class="remove-tag">x</span></span>
+          <span class="tag">Room <span class="remove-tag">x</span></span>
+          <span class="tag">Summer <span class="remove-tag">x</span></span>
+          <span class="tag">Weekly Storage <span class="remove-tag">x</span></span>
+          <span class="tag">Monthly Storage <span class="remove-tag">x</span></span>
+        </div>
+        <label for="cost-slider"><strong>Cost</strong></label>
+        <input type="range" id="cost-slider" name="cost-slider" min="0" max="100" value="50">
+        <div class="time-group">
+          <p><strong>Time of Year</strong></p>
+          <label><input type="checkbox" checked> Spring</label>
+          <label><input type="checkbox" checked> Summer</label>
+          <label><input type="checkbox"> Fall</label>
+          <label><input type="checkbox"> Winter</label>
+        </div>
+        <div class="size-group">
+          <p><strong>Size of Space</strong></p>
+          <label><input type="checkbox"> Small (&lt; 5 sq ft)</label>
+          <label><input type="checkbox" checked> Medium (5-10 sq ft)</label>
+          <label><input type="checkbox"> Large (&gt; 20 sq ft)</label>
+        </div>
+      </aside>
+      
+      <div class="main-content">
+        <div class="top-bar">
+          <input type="text" placeholder="Search" class="search-bar">
+          <div class="tag-toggle-group">
+            <label>Sort by:</label>
+            <button class="toggle active">New</button>
+            <button class="toggle">Price ascending</button>
+            <button class="toggle">Price descending</button>
+          </div>
+        </div>
+        <div class="storage-listings">
+          <div class="storage-item">
+            <div class="storage-info">
+              <h4>Summer Storage in my home</h4>
+              <p><strong>Duration:</strong> June - August</p>
+              <p><strong>Cost:</strong> $20 / month</p>
+              <p><strong>Size:</strong> ~9 sq ft (approx. 3' x 3')</p>
+              <p><strong>Contact:</strong> 000-000-0000</p>
+              <p><strong>Description:</strong> Hi! I will be out of Amherst during June - August for an internship. Offering a storage space in my room, perfect for a few boxes or smaller furniture.</p>
+            </div>
+            <div class="storage-image"></div>
+          </div>
+          <div class="storage-item">
+            <div class="storage-info">
+              <h4>Storage in my Garage</h4>
+              <p><strong>Duration:</strong> Year-round</p>
+              <p><strong>Cost:</strong> $10 / month</p>
+              <p><strong>Size:</strong> Approximately 5.4 sq ft</p>
+              <p><strong>Contact:</strong> 000-000-0000</p>
+              <p><strong>Description:</strong> I have extra space in my garage. It's great for storing a few bins or small furniture. Rent is month to month. Time can be extended if needed.</p>
+            </div>
+            <div class="storage-image"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</body>
+</html>
