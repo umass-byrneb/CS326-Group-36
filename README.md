@@ -1,9 +1,11 @@
 # College Clutter-Group 36
 ## Table of Contents
-
 - [Project Description](#Project-Description)
 - [Team Members](#Team-Members)
-
+- [Milestone #2](https://github.com/umass-byrneb/CS326-Group-36/blob/main/docs/milestone_2/Milestone2_Group36.pdf)
+- [Milestone #3](https://github.com/umass-byrneb/CS326-Group-36/blob/main/docs/milestone_2/Milestone2_Group36.pdf)
+- [Milestone #4](https://github.com/umass-byrneb/CS326-Group-36/blob/main/docs/milestone_4/Milestone4_Group36.pdf)
+  
 ## Project Description 
 **Problem:** Every year students buy new furniture every year to offset costs of storage and leading to tons of waste at the end of every semester.\
 **Solution:** CollegeClutter is a website designed to connect students to other students and local storage facilities to collectively create optimal storage/selling opportunities.\
