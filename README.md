@@ -23,7 +23,7 @@ snohria@umass.edu
 **Other Interests:** running, rock climbing, baking    
 **Reflection:** I am interested in increasing students' accessability to affordable housing items and a more efficient exchange of existing resources. I believe this website will help people live well. 
 
-**Simran Lekhwani**-Senio Computer Science Major   
+**Simran Lekhwani**-Senior Computer Science Major   
 slekhwani@umass.edu  
 **Background Knowledge:** C, C++, Python, Java, Go, JS, SQL  
 **Other Interests:** Dancing, Rock climbing, Reading   
