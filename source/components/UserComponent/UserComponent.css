@@ -1,0 +1,58 @@
+
+.user-page {
+    padding: 2rem;
+  }
+  
+  .section-title {
+    margin: 1rem 2rem;
+    font-size: 1.5rem;
+  }
+  
+  .items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .item-row {
+    display: grid;
+    grid-template-columns: 200px 1fr 50px;
+    gap: 1rem;
+    align-items: start;
+    border: 1px solid #EDE4DA;
+    border-radius: 4px;
+    background-color: #EDE4DA;
+    padding: 1rem;
+  }
+  
+  .item-image {
+    width: 100%;
+    height: 150px;
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .item-details h2 {
+    margin-bottom: 0.5rem;
+    font-size: 1.25rem;
+  }
+  
+  .item-details p {
+    font-size: 0.95rem;
+    color: #4F4F4F;
+  }
+  
+  .item-checkbox {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .button-group {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+  }
+  
