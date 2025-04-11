@@ -77,7 +77,7 @@ export class RegisterComponent extends BaseComponent {
     form.appendChild(confirmGroup);
 
     const signUpBtn = document.createElement('button');
-    signUpBtn.classList.add('btn', 'btn-primary');
+    signUpBtn.classList.add('btn', 'btn-neutral');
     signUpBtn.textContent = 'Sign Up';
     form.appendChild(signUpBtn);
 

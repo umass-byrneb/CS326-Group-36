@@ -49,7 +49,7 @@ export class LandingComponent extends BaseComponent {
     btnGroup.appendChild(btnStorage);
 
     const btnSell = document.createElement('button');
-    btnSell.classList.add('btn', 'btn-primary');
+    btnSell.classList.add('btn', 'btn-neutral');
     btnSell.textContent = 'Sell';
     btnSell.addEventListener('click', () => {
       window.location.hash = '#sell';

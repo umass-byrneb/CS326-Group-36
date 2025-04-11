@@ -49,7 +49,7 @@ export class LoginComponent extends BaseComponent {
     form.appendChild(passwordGroup);
 
     const signInBtn = document.createElement('button');
-    signInBtn.classList.add('btn', 'btn-primary');
+    signInBtn.classList.add('btn', 'btn-neutral');
     signInBtn.textContent = 'Sign In';
     form.appendChild(signInBtn);
 
