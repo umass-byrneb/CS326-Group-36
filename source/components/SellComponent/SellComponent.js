@@ -79,7 +79,7 @@ export class SellComponent extends BaseComponent {
     details.appendChild(selectRow);
 
     const postButton = document.createElement('button');
-    postButton.classList.add('btn', 'btn-primary', 'sell-post-button');
+    postButton.classList.add('btn', 'btn-neutral', 'sell-post-button');
     postButton.textContent = 'Post';
     details.appendChild(postButton);
 

@@ -115,7 +115,6 @@ export class BuyComponent extends BaseComponent {
     const tagToggleGroup = document.createElement('div');
     tagToggleGroup.classList.add('tag-toggle-group');
     const toggleLabel = document.createElement('label');
-    toggleLabel.textContent = 'Label this!';
     tagToggleGroup.appendChild(toggleLabel);
     ['New', 'Price ascending', 'Price descending', 'Rating'].forEach((text, idx) => {
       const btn = document.createElement('button');
