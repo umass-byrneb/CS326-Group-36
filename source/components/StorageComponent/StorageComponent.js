@@ -80,9 +80,10 @@ export class StorageComponent extends BaseComponent {
       const label = document.createElement('label');
       const input = document.createElement('input');
       input.type = 'checkbox';
-      if (text === 'Spring' || text === 'Summer') input.checked = true;
+      // if (text === 'Spring' || text === 'Summer') input.checked = true;
       label.appendChild(input);
       label.appendChild(document.createTextNode(' ' + text));
+      label.classList.add('time-group-input')
       timeGroup.appendChild(label);
     });
     sidebar.appendChild(timeGroup);
@@ -94,9 +95,9 @@ export class StorageComponent extends BaseComponent {
     sizeHeading.innerHTML = '<strong>Size of Space</strong>';
     sizeGroup.appendChild(sizeHeading);
     [
-      { text: 'Small (< 5 sq ft)', checked: false },
-      { text: 'Medium (5-10 sq ft)', checked: true },
-      { text: 'Large (> 20 sq ft)', checked: false }
+      { text: 'Small (< 100 sq ft)', checked: false },
+      { text: 'Medium (100-220 sq ft)', checked: false },
+      { text: 'Large (> 220 sq ft)', checked: false }
     ].forEach(item => {
       const label = document.createElement('label');
       const input = document.createElement('input');
@@ -104,6 +105,7 @@ export class StorageComponent extends BaseComponent {
       input.checked = item.checked;
       label.appendChild(input);
       label.appendChild(document.createTextNode(' ' + item.text));
+      label.classList.add('size-group-input')
       sizeGroup.appendChild(label);
     });
     sidebar.appendChild(sizeGroup);
@@ -227,7 +229,15 @@ export class StorageComponent extends BaseComponent {
   }
 
   #removeTag() {
-    
+    const tags = this.#container.querySelectorAll('.tag');
+    console.log("tags: ", tags);
+    const tagsList = []
+    tags.forEach(tag => tagsList.push(tag.textContent.slice(0, -1)));
+    console.log("tagList: ", tagsList);
+    const hub = EventHub.getInstance();
+    if (tagsList.length == 0) {
+      hub.publish(Events.StorageUnfilteredList);
+    } else hub.publish(Events.StorageFilterRemoveTag, tagsList);
   }
 
   #attachEventListeners() {
@@ -263,6 +273,21 @@ export class StorageComponent extends BaseComponent {
         else hub.publish(Events.StorageUnfilteredList, 0);
       })
     })
+
+    //sidebar filters: storage space
+    const sizes = this.#container.querySelectorAll('.size-group-input');
+    // const sizeLabel = []
+    sizes.forEach(size => {
+      // sizeLabel.push(size.textContent);
+      size.addEventListener('click', () => {
+        let range = []
+        if (size.textContent[1] == "S") range = [-1, 100];
+        if (size.textContent[1] == "M") range = [100, 220];
+        if (size.textContent[1] == "L") range = [220, -1];
+        hub.publish(Events.StorageSpaceFilter, range);
+      });
+    });
+    
 
   }
   

@@ -147,16 +147,9 @@ export class StorageListingService extends Service{
         })
     }
 
-    // //note: for now, we only accept cost in a particular format
-    // async removeTextFromPrice(list) {
-    //     list.map(item => {
-    //         item.cost = item.cost.split().slice(1, 3);
-    //         return item;
-    //     })
-    // }
-
+    //note: for now, we only accept cost in a particular format
     async filterListByPrice(order) {
-        const list = await this.loadItemsFromDB(0);
+        const list = await this.loadItemsFromDB(this.page);
         const compareByPrice = (a, b) => {
             if (a.cost < b.cost) return order == "ascending" ? -1 : 1;
             if (a.cost > b.cost) return order == "ascending" ? 1 : -1;
@@ -171,7 +164,7 @@ export class StorageListingService extends Service{
     //need to optimize the algorithm
     async filterByTag(tag) {
         tag = tag.toLowerCase();
-        const list = await this.loadItemsFromDB(0);
+        const list = await this.loadItemsFromDB(this.page);
         const filtered = list.filter(item => {
             const split = item.title.split(" ").reduce((sum, curr) => {
                 if (curr.toLowerCase() == tag) sum.push(curr);
@@ -182,6 +175,31 @@ export class StorageListingService extends Service{
         this.rewriteToDB(filtered);
         return new Promise((resolve, reject) => {resolve(filtered)});
     }
+
+    //need to find a more efficient algorithm - for next milestone
+    async removeTag(tagList) {
+        const list = await this.fetchFromAPI();
+        const filtered = list.filter(item => {
+            const split = item.title.split(" ");
+            return split.filter(word => {
+                return tagList.filter(tag => tag.toLowerCase() == word.toLowerCase()).length !== 0
+            }).length !== 0;
+        })
+        console.log("filtered after removing tag: ", filtered);
+        this.rewriteToDB(filtered);
+        return new Promise((resolve, _) => {resolve(filtered)});
+    }
+
+    async filterBySpace(range) {
+        const start = range[0] == -1 ? 0 : range[0];
+        const end = range[1] == -1 ? Infinity : range[1];
+        const list = await this.loadItemsFromDB(this.page);
+        const filtered = list.filter(item => item.size >= start && item.size < end);
+        this.rewriteToDB(filtered);
+        return new Promise((resolve, _) => {resolve(filtered)});
+    }
+
+
 
     fetchStorageListings() {
         this.subscribe(Events.LoadStorageListings, (page) => {
@@ -217,6 +235,21 @@ export class StorageListingService extends Service{
             filteredPromise.then(list => {
                 EventHub.getInstance().publish(Events.LoadStorageSuccess, list);
             })
+        });
+
+        this.subscribe(Events.StorageFilterRemoveTag, (tagList) => {
+            const filtered = this.removeTag(tagList);
+            filtered.then(list => {
+                EventHub.getInstance().publish(Events.LoadStorageSuccess, list);
+            })
+        });
+
+        this.subscribe(Events.StorageSpaceFilter, (spaceRange) => {
+            console.log("space size range: ", spaceRange);
+            const filtered = this.filterBySpace(spaceRange);
+            filtered.then(list =>
+                EventHub.getInstance().publish(Events.LoadStorageSuccess, list)
+            )
         })
     }
 }
