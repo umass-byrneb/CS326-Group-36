@@ -164,7 +164,7 @@ export class StorageListingService extends Service{
     //need to optimize the algorithm
     async filterByTag(tag) {
         tag = tag.toLowerCase();
-        const list = await this.loadItemsFromDB(this.page);
+        const list = await this.fetchFromAPI();
         const filtered = list.filter(item => {
             const split = item.title.split(" ").reduce((sum, curr) => {
                 if (curr.toLowerCase() == tag) sum.push(curr);
@@ -173,7 +173,7 @@ export class StorageListingService extends Service{
             return split.length !== 0
         })
         this.rewriteToDB(filtered);
-        return new Promise((resolve, reject) => {resolve(filtered)});
+        return new Promise((resolve, reject) => {resolve(filtered.slice(this.page*10, this.page*10 + 11))});
     }
 
     //need to find a more efficient algorithm - for next milestone
@@ -187,7 +187,7 @@ export class StorageListingService extends Service{
         })
         console.log("filtered after removing tag: ", filtered);
         this.rewriteToDB(filtered);
-        return new Promise((resolve, _) => {resolve(filtered)});
+        return new Promise((resolve, _) => {resolve(filtered.slice(this.page*10, this.page*10 + 11))});
     }
 
     async filterBySpace(range) {
@@ -196,7 +196,7 @@ export class StorageListingService extends Service{
         const list = await this.loadItemsFromDB(this.page);
         const filtered = list.filter(item => item.size >= start && item.size < end);
         this.rewriteToDB(filtered);
-        return new Promise((resolve, _) => {resolve(filtered)});
+        return new Promise((resolve, _) => {resolve(filtered.slice(this.page*10, this.page*10 + 11))});
     }
 
 
