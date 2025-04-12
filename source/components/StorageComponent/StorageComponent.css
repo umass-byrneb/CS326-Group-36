@@ -17,6 +17,10 @@
     background-color: #EDE4DA;
     /* background-color: #262626; */
   }
+
+  h3 {
+    margin-bottom: 1em;
+  }
   
   .main-content {
     flex: 1;
@@ -124,6 +128,9 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    width: 100%;
+    height: 100vh;
+    overflow-y: scroll;
   }
   
   .storage-item {
