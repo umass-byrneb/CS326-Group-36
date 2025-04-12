@@ -2,8 +2,10 @@ export const Events = {
     NewTask: 'NewTask',
 
     //filtering storage based on tags
-    AddTag: 'AddTag',
-    RemoveTag: 'RemoveTag',
+    StorageAddTag: 'StorageAddTag',
+    StorageFilterAddTag: 'StorageFilterAddTag',
+    StorageRemoveTag: 'StorageRemoveTag',
+    StorageFilterRemoveTag: 'StorageFilterRemoveTag',
 
     //load storage listings
     LoadStorageListings: 'LoadStorageListings',

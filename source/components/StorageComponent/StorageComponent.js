@@ -214,14 +214,16 @@ export class StorageComponent extends BaseComponent {
     //event listener for removing tag
     remove.addEventListener('click', () => {
       tag.remove();
-      hub.subscribe(Events.RemoveTag, () => this.#removeTag());
-      hub.publish(Events.RemoveTag);
+      hub.subscribe(Events.StorageRemoveTag, () => this.#removeTag());
+      hub.publish(Events.StorageRemoveTag);
     })
 
     tag.appendChild(remove);
     tagsDiv.appendChild(tag);
     
-    //add a publish for creating a 
+    //add a publish for filtering after it has been added
+    hub.publish(Events.StorageFilterAddTag, value);
+
   }
 
   #removeTag() {
@@ -240,12 +242,12 @@ export class StorageComponent extends BaseComponent {
     hub.publish(Events.LoadStorageListings, 0);
 
     //search bar
-    hub.subscribe(Events.AddTag, (newTag) => this.#addTag(newTag));
+    hub.subscribe(Events.StorageAddTag, (newTag) => this.#addTag(newTag));
     const searchBar = this.#container.querySelector('.search-bar');
     searchBar.addEventListener("keydown", function(event) {
       if (event.key == "Enter") {
         const value = searchBar.value.trim();
-        hub.publish(Events.AddTag, value);
+        hub.publish(Events.StorageAddTag, value);
         searchBar.value = "";
       }
     })
@@ -258,7 +260,7 @@ export class StorageComponent extends BaseComponent {
         button.classList.add('active');
         if (button.textContent == "Price ascending") hub.publish(Events.StoragePriceAscend);
         else if (button.textContent == "Price descending") hub.publish(Events.StoragePriceDescend);
-        else hub.publish(Events.StorageUnfilteredList);
+        else hub.publish(Events.StorageUnfilteredList, 0);
       })
     })
 
