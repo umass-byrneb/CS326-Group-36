@@ -113,22 +113,6 @@ export class StorageComponent extends BaseComponent {
     return sidebar;
   }
 
-  // #createSideBarTags() {
-  //   const tagsDiv = document.createElement('div');
-  //   tagsDiv.classList.add('tags'); //static, need to change
-  //   ['Garage', 'Room', 'Summer', 'Weekly Storage', 'Monthly Storage'].forEach(text => {
-  //     const tag = document.createElement('span');
-  //     tag.classList.add('tag');
-  //     tag.textContent = text;
-  //     const remove = document.createElement('span');
-  //     remove.classList.add('remove-tag');
-  //     remove.textContent = 'x';
-  //     tag.appendChild(remove);
-  //     tagsDiv.appendChild(tag);
-  //   });
-  //   return tagsDiv;
-  // }
-
   #createTopBarDiv() {
     const topBar = document.createElement('div');
     topBar.classList.add('top-bar');

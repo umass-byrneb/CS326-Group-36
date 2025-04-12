@@ -42,6 +42,13 @@ export class StorageListingService extends Service{
 
     async loadItemsFromDB(page) {
         this.page = page;
+        const list = await this.loadAllItemsFromDB();
+        return new Promise((resolve, _) => {
+            resolve(list.slice(page*10, page*10 + 11))
+        });
+    }
+
+    async loadAllItemsFromDB() {
         this.db = await this.init();
 
         let tran = null;
@@ -58,24 +65,13 @@ export class StorageListingService extends Service{
             tran.oncomplete = () => {
                 //gets items from API if it's the first time loading or if the listing was updated by some user
                 if (items.result.length == 0) {
-                    // const hub = EventHub.getInstance();
-                    // hub.subscribe(Events.LoadStorageServerSuccess, (data) => {
-                    //     if (typeof(data) == String) reject(new Error("Error getting list from server.\n"));
-                    //     data.then(list => {
-                    //         console.log("on mock server")
-                    //         resolve(list.slice(page*10, page*10 + 11));
-                    //         this.addListToDB(list);
-                    //     }).then((message) => console.log(message)).catch((message) => console.error(message));
-                    // });
-                    // hub.publish(Events.LoadStorageServer);
                     this.fetchFromAPI().then(list => {
-                        resolve(list.slice(page*10, page*10 + 11));
+                        resolve(list);
                         this.addListToDB(list);
                     }).catch(err => reject(err));
                 } else {
-                    console.log("on local DB")
                     const list = items.result.map(obj => obj.storageItem);
-                    resolve(list.slice(page*10, page*10 + 11));
+                    resolve(list);
                 }
             }
             tran.onerror = function() {
@@ -149,7 +145,7 @@ export class StorageListingService extends Service{
 
     //note: for now, we only accept cost in a particular format
     async filterListByPrice(order) {
-        const list = await this.loadItemsFromDB(this.page);
+        const list = await this.loadAllItemsFromDB();
         const compareByPrice = (a, b) => {
             if (a.cost < b.cost) return order == "ascending" ? -1 : 1;
             if (a.cost > b.cost) return order == "ascending" ? 1 : -1;
@@ -193,7 +189,7 @@ export class StorageListingService extends Service{
     async filterBySpace(range) {
         const start = range[0] == -1 ? 0 : range[0];
         const end = range[1] == -1 ? Infinity : range[1];
-        const list = await this.loadItemsFromDB(this.page);
+        const list = await this.loadAllItemsFromDB();
         const filtered = list.filter(item => item.size >= start && item.size < end);
         this.rewriteToDB(filtered);
         return new Promise((resolve, _) => {resolve(filtered.slice(this.page*10, this.page*10 + 11))});
