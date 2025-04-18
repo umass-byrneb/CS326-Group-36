@@ -1,0 +1,48 @@
+
+.hero {
+    text-align: center;
+    padding: 2rem 2rem;
+    min-height: calc(100vh - 70px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .hero h1 {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+  }
+
+
+  .hero h1 .clutter {
+    color: #D58936;
+  }
+  
+  .hero p {
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+  }
+  
+  .button-group {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .btn-neutral {
+    background-color: #D58936;
+  }
+  
+  .btn-neutral:hover {
+    background-color: #FFCC7F;
+  }
+  
+  .btn-primary {
+    background-color: #000;
+    color: #fff;
+  }
+  
+  .btn-primary:hover {
+    background-color: #333;
+  }
+  
