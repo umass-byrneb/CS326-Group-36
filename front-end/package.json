@@ -1,0 +1,18 @@
+{
+    "name": "collegeclutter",
+    "version": "1.0.0",
+    "description": "A front-end single-page application for College Clutter using a component-based architecture.",
+    "main": "source/main.js",
+    "type": "module",
+    "scripts": {
+      "start": "http-server ./source -c-1",
+      "build": "echo \"No build step defined\""
+    },
+    "author": "",
+    "license": "MIT",
+    "dependencies": {},
+    "devDependencies": {
+      "http-server": "^14.1.1"
+    }
+  }
+  
