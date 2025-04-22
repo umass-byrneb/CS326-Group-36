@@ -39,6 +39,14 @@ export class FileTaskModel {
     return true;
   }
 
+  static async deleteByOwner(ownerEmail) {
+    const tasks = await this._readFile();
+    const filtered = tasks.filter(t => t.owner !== ownerEmail);
+    if (filtered.length === tasks.length) return 0;
+    await this._writeFile(filtered);
+    return tasks.length - filtered.length;  // number removed
+  }
+
   static async updateById(id, updates) {
     const tasks = await this._readFile();
     const idx = tasks.findIndex(t => t.id === id);
