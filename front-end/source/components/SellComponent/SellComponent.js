@@ -155,7 +155,7 @@ export class SellComponent extends BaseComponent {
 
     const saveButton = document.createElement('button');
     saveButton.type = 'button';
-    saveButton.classList.add('btn', 'btn-primary');
+    saveButton.classList.add('btn', 'btn-neutral');
     saveButton.textContent = 'Save';
     details.appendChild(saveButton);
 

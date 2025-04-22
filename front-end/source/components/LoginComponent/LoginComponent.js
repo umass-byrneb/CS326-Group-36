@@ -41,7 +41,7 @@ export class LoginComponent extends BaseComponent {
 
     const loginBtn = document.createElement('button');
     loginBtn.type = 'button';
-    loginBtn.classList.add('btn', 'btn-primary');
+    loginBtn.classList.add('btn', 'btn-neutral');
     loginBtn.textContent = 'Log In';
     form.appendChild(loginBtn);
 
