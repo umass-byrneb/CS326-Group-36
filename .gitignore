@@ -1,0 +1,8 @@
+# IDE settings
+.vscode/
+
+# Node deps
+node_modules/
+
+# Lockfile (if you never want to track it)
+package-lock.json
