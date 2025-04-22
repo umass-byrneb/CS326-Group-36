@@ -4,5 +4,5 @@
 # Node deps
 node_modules/
 
-# Lockfile (if you never want to track it)
+# Lockfile 
 package-lock.json
