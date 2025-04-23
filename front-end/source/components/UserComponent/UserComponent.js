@@ -1,3 +1,4 @@
+// source/components/UserComponent/UserComponent.js
 import { BaseComponent } from '../BaseComponent/BaseComponent.js';
 
 export class UserComponent extends BaseComponent {
@@ -8,6 +9,21 @@ export class UserComponent extends BaseComponent {
   }
 
   render() {
+    const rawUser = localStorage.getItem('currentUser');
+    const currentUser = rawUser ? JSON.parse(rawUser) : null;
+
+    // If not logged in, show prompt and no actions
+    if (!currentUser) {
+      const msgSection = document.createElement('section');
+      msgSection.classList.add('user-page');
+      msgSection.innerHTML = `
+        <div class="user-not-logged-in">
+          <p>Please <a href="#login">log in</a> to view your dashboard.</p>
+        </div>
+      `;
+      return msgSection;
+    }
+
     const container = document.createElement('section');
     container.classList.add('user-page');
 
@@ -16,16 +32,16 @@ export class UserComponent extends BaseComponent {
     headerBar.style.display = 'flex';
     headerBar.style.justifyContent = 'space-between';
     headerBar.style.alignItems = 'center';
-
-    const rawUser = localStorage.getItem('currentUser');
-    const currentUser = rawUser ? JSON.parse(rawUser) : null;
+    headerBar.style.marginBottom = '1rem';
 
     const title = document.createElement('h1');
     title.classList.add('section-title');
-    title.textContent = currentUser
-      ? `${currentUser.fullname}'s Items`
-      : 'My Items';
+    title.textContent = `${currentUser.fullname}'s Items`;
     headerBar.appendChild(title);
+
+    const btnGroup = document.createElement('div');
+    btnGroup.style.display = 'flex';
+    btnGroup.style.gap = '0.5rem';
 
     const logoutBtn = document.createElement('button');
     logoutBtn.classList.add('btn', 'btn-neutral');
@@ -34,8 +50,30 @@ export class UserComponent extends BaseComponent {
       localStorage.removeItem('currentUser');
       window.location.hash = '#';
     });
-    headerBar.appendChild(logoutBtn);
+    btnGroup.appendChild(logoutBtn);
 
+    const deleteProfileBtn = document.createElement('button');
+    deleteProfileBtn.classList.add('btn');
+    deleteProfileBtn.style.backgroundColor = '#e53e3e';
+    deleteProfileBtn.style.color = '#fff';
+    deleteProfileBtn.textContent = 'Delete Profile';
+    deleteProfileBtn.addEventListener('click', async () => {
+      if (!confirm(
+        'Are you sure? This will remove your account and all items.'
+      )) return;
+      try {
+        const res = await fetch(`/v1/users/${currentUser.id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error();
+        localStorage.removeItem('currentUser');
+        alert('Profile and items deleted.');
+        window.location.hash = '#';
+      } catch {
+        alert('Error deleting profile.');
+      }
+    });
+    btnGroup.appendChild(deleteProfileBtn);
+
+    headerBar.appendChild(btnGroup);
     container.appendChild(headerBar);
 
     this.itemsList = document.createElement('div');
@@ -44,17 +82,18 @@ export class UserComponent extends BaseComponent {
 
     const actions = document.createElement('div');
     actions.classList.add('user-actions');
+    actions.style.marginTop = '1rem';
 
-    const sellBtn = document.createElement('button');
-    sellBtn.classList.add('btn', 'btn-neutral');
-    sellBtn.textContent = 'List Selected Items';
-    sellBtn.addEventListener('click', () => this.sellSelectedItems());
-    actions.appendChild(sellBtn);
+    const listBtn = document.createElement('button');
+    listBtn.classList.add('btn', 'btn-neutral');
+    listBtn.textContent = 'List Selected Items';
+    listBtn.addEventListener('click', () => this.sellSelectedItems());
+    actions.appendChild(listBtn);
 
     const deleteBtn = document.createElement('button');
     deleteBtn.classList.add('btn', 'btn-neutral');
-    deleteBtn.textContent = 'Delete Selected Items';
     deleteBtn.style.marginLeft = '0.5rem';
+    deleteBtn.textContent = 'Delete Selected Items';
     deleteBtn.addEventListener('click', () => this.deleteSelectedItems());
     actions.appendChild(deleteBtn);
 
@@ -66,16 +105,11 @@ export class UserComponent extends BaseComponent {
 
   async loadUserProducts(currentUser) {
     this.itemsList.innerHTML = '';
-    if (!currentUser) {
-      this.itemsList.textContent = 'Please log in to see your items.';
-      return;
-    }
     try {
       const res = await fetch('/v1/tasks');
+      if (!res.ok) throw new Error();
       const { tasks } = await res.json();
-      this.loadedProducts = tasks.filter(
-        t => t.owner === currentUser.email
-      );
+      this.loadedProducts = tasks.filter(t => t.owner === currentUser.email);
       if (!this.loadedProducts.length) {
         this.itemsList.innerHTML = '<p>No items found. Please post a product.</p>';
       } else {
@@ -92,33 +126,34 @@ export class UserComponent extends BaseComponent {
       const row = document.createElement('div');
       row.classList.add('item-row');
       row.dataset.id = prod.id;
+      row.style.display = 'flex';
+      row.style.gap = '1rem';
+      row.style.alignItems = 'center';
+      row.style.padding = '0.5rem 0';
 
-      const imgDiv = document.createElement('div');
-      imgDiv.classList.add('item-image');
       const img = document.createElement('img');
       img.src = prod.image;
       img.alt = prod.name;
-      imgDiv.appendChild(img);
-      row.appendChild(imgDiv);
+      img.style.width = '80px';
+      img.style.height = '80px';
+      img.style.objectFit = 'cover';
+      row.appendChild(img);
 
-      const det = document.createElement('div');
-      det.classList.add('item-details');
-      det.innerHTML = `
-        <h2>${prod.name}</h2>
-        <p>Description: ${prod.description}</p>
-        <p>Cost: ${prod.cost}</p>
-        <p>Tag: ${prod.tag}</p>
-        <p>Contact: ${prod.contact}</p>
-        <p>Delivery: ${prod.delivery}</p>
-        <p>Listed: ${prod.listed ? 'Yes' : 'No'}</p>
+      const details = document.createElement('div');
+      details.style.flex = '1';
+      details.innerHTML = `
+        <h2 style="margin:0">${prod.name}</h2>
+        <p style="margin:0.25rem 0">Cost: ${prod.cost}</p>
+        <p style="margin:0.25rem 0">Tag: ${prod.tag}</p>
+        <p style="margin:0.25rem 0">Delivery: ${prod.delivery}</p>
+        <p style="margin:0.25rem 0">Listed: ${prod.listed ? 'Yes' : 'No'}</p>
       `;
-      row.appendChild(det);
+      row.appendChild(details);
 
       const cbDiv = document.createElement('div');
-      cbDiv.classList.add('item-checkbox');
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cbDiv.appendChild(cb);
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      cbDiv.appendChild(checkbox);
       row.appendChild(cbDiv);
 
       this.itemsList.appendChild(row);
@@ -127,49 +162,40 @@ export class UserComponent extends BaseComponent {
 
   async sellSelectedItems() {
     const rows = Array.from(this.itemsList.querySelectorAll('.item-row'));
-    const toSellIds = rows
-      .filter(r => r.querySelector('input[type="checkbox"]').checked)
+    const toList = rows
+      .filter(r => r.querySelector('input').checked)
       .map(r => Number(r.dataset.id));
-
-    if (!toSellIds.length) {
-      alert('Please select at least one item to list.');
+    if (!toList.length) {
+      alert('Please select items to list.');
       return;
     }
-
     try {
-      await Promise.all(
-        toSellIds.map(id =>
-          fetch(`/v1/tasks/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ listed: true })
-          })
-        )
-      );
+      await Promise.all(toList.map(id =>
+        fetch(`/v1/tasks/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ listed: true })
+        })
+      ));
       window.location.hash = '#buy';
-    } catch (err) {
-      console.error(err);
-      alert('Error listing items for sale.');
+    } catch {
+      alert('Error listing items.');
     }
   }
 
   async deleteSelectedItems() {
     const rows = Array.from(this.itemsList.querySelectorAll('.item-row'));
     const toDelete = rows
-      .filter(r => r.querySelector('input[type="checkbox"]').checked)
+      .filter(r => r.querySelector('input').checked)
       .map(r => Number(r.dataset.id));
-
     if (!toDelete.length) {
-      alert('Please select at least one item to delete.');
+      alert('Please select items to delete.');
       return;
     }
-
     try {
-      await Promise.all(
-        toDelete.map(id =>
-          fetch(`/v1/tasks/${id}`, { method: 'DELETE' })
-        )
-      );
+      await Promise.all(toDelete.map(id =>
+        fetch(`/v1/tasks/${id}`, { method: 'DELETE' })
+      ));
       const rawUser = localStorage.getItem('currentUser');
       const user = rawUser ? JSON.parse(rawUser) : null;
       this.loadUserProducts(user);
