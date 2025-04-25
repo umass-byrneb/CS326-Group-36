@@ -1,259 +1,278 @@
 import { BaseComponent } from '../BaseComponent/BaseComponent.js';
+import { Events } from '../../eventhub/Events.js'
+import { EventHub } from '../../eventhub/EventHub.js';
+import { StorageListingService } from '../../services/StorageListingService.js';
 
 export class StorageComponent extends BaseComponent {
+  #container = null;
+  #flexContainer = null;
+
   constructor() {
     super();
     this.loadCSS('StorageComponent');
-    this.dynamicTags = new Map();
-    this.sampleProducts = [
-      { title: 'Garage Storage', price: '$15', postingDate: '2025-03-18', tag: 'Garage', delivery: 'Pick Up' },
-      { title: 'Room Storage', price: '$10', postingDate: '2025-03-19', tag: 'Room', delivery: 'Drop Off To You' },
-      { title: 'Basement Storage', price: '$8', postingDate: '2025-03-20', tag: 'Basement', delivery: 'Pick Up' },
-      { title: 'Office Storage', price: '$20', postingDate: '2025-03-21', tag: 'Office', delivery: 'Drop Off To You' }
-    ];
-    this.currentCostFilter = 0;
-    this.currentSearch = "";
   }
 
   render() {
-    const container = document.createElement('section');
-    container.classList.add('storage-page');
+    //register the service
+    StorageListingService.register();
 
-    const flexContainer = document.createElement('div');
-    flexContainer.classList.add('flex-container');
+    this.#createContainer();
+    this.#flexContainer.appendChild(this.#createSideBar());
 
+    //main content 
+    const mainContent = document.createElement('main');
+    mainContent.classList.add('main-content');
+
+    mainContent.appendChild(this.#createTopBarDiv());
+
+    const listings = document.createElement('div');
+    listings.classList.add('storage-listings');
+    mainContent.appendChild(listings);
+
+    this.#flexContainer.appendChild(mainContent);
+    this.#container.appendChild(this.#flexContainer);
+    this.#attachEventListeners();
+    return this.#container;
+  }
+
+  #createContainer() {
+    this.#container = document.createElement('section');
+    this.#container.classList.add('storage-page');
+
+    this.#flexContainer = document.createElement('div');
+    this.#flexContainer.classList.add('flex-container');
+  }
+
+  #createSideBar() {
     const sidebar = document.createElement('aside');
     sidebar.classList.add('sidebar');
-
     const heading = document.createElement('h3');
     heading.textContent = 'Keywords';
     sidebar.appendChild(heading);
 
-    this.tagsDiv = document.createElement('div');
-    this.tagsDiv.classList.add('tags');
-    sidebar.appendChild(this.tagsDiv);
+    //generate tags
+    const tagsDiv = document.createElement('div');
+    tagsDiv.classList.add('tags');
+    sidebar.appendChild(tagsDiv);
 
-    const checkboxGroup = document.createElement('div');
-    checkboxGroup.classList.add('checkbox-group');
-    const categories = ['Garage', 'Room', 'Basement', 'Office'];
-    categories.forEach(cat => {
-      const label = document.createElement('label');
-      label.setAttribute('data-category', cat);
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = false;
-      checkbox.setAttribute('data-category', cat);
-      label.appendChild(checkbox);
-      label.appendChild(document.createTextNode(' ' + cat));
-      checkboxGroup.appendChild(label);
-      checkbox.addEventListener('change', (e) => {
-        this.toggleDynamicTag(cat, e.target.checked);
-        this.renderProductsGrid();
-      });
-    });
-    sidebar.appendChild(checkboxGroup);
-
+    //cost slider
     const costLabel = document.createElement('label');
     costLabel.setAttribute('for', 'cost-slider');
-    costLabel.innerHTML = '<strong>Cost</strong>';
+    costLabel.innerHTML = '<strong>Cost </strong>';
     sidebar.appendChild(costLabel);
+
     const costSlider = document.createElement('input');
     costSlider.type = 'range';
     costSlider.id = 'cost-slider';
     costSlider.name = 'cost-slider';
-    const maxPrice = Math.max(...this.sampleProducts.map(prod => parseFloat(prod.price.substring(1))));
-    costSlider.max = maxPrice;
-    costSlider.value = maxPrice;
-    this.currentCostFilter = maxPrice;
-    const costDisplay = document.createElement('p');
-    costDisplay.classList.add('cost-range');
-    costDisplay.textContent = "$0 - $" + costSlider.value;
+    costSlider.min = '0';
+    costSlider.max = '100';
+    costSlider.value = '50';
     sidebar.appendChild(costSlider);
-    sidebar.appendChild(costDisplay);
-    costSlider.addEventListener('input', (e) => {
-      this.currentCostFilter = parseFloat(e.target.value);
-      costDisplay.textContent = "$0 - $" + e.target.value;
-      this.renderProductsGrid();
-    });
 
-    const deliveryDiv = document.createElement('div');
-    deliveryDiv.classList.add('delivery-group');
-    const deliveryHeading = document.createElement('p');
-    deliveryHeading.innerHTML = '<strong>Delivery</strong>';
-    deliveryDiv.appendChild(deliveryHeading);
-    const deliveryOptions = ['Pick Up', 'Drop Off To You'];
-    deliveryOptions.forEach(option => {
+    //time of the year filter
+    const timeGroup = document.createElement('div');
+    timeGroup.classList.add('time-group');
+    const timeHeading = document.createElement('p');
+    timeHeading.innerHTML = '<strong>Time of Year</strong>';
+    timeGroup.appendChild(timeHeading); 
+    ['Spring', 'Summer', 'Fall', 'Winter'].forEach(text => {
       const label = document.createElement('label');
-      label.setAttribute('data-category', option);
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = false;
-      checkbox.setAttribute('data-category', option);
-      label.appendChild(checkbox);
-      label.appendChild(document.createTextNode(' ' + option));
-      deliveryDiv.appendChild(label);
-      checkbox.addEventListener('change', (e) => {
-        this.toggleDynamicTag(option, e.target.checked);
-        this.renderProductsGrid();
-      });
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      // if (text === 'Spring' || text === 'Summer') input.checked = true;
+      label.appendChild(input);
+      label.appendChild(document.createTextNode(' ' + text));
+      label.classList.add('time-group-input')
+      timeGroup.appendChild(label);
     });
-    sidebar.appendChild(deliveryDiv);
+    sidebar.appendChild(timeGroup);
 
-    flexContainer.appendChild(sidebar);
+    // storage size filter
+    const sizeGroup = document.createElement('div');
+    sizeGroup.classList.add('size-group');
+    const sizeHeading = document.createElement('p');
+    sizeHeading.innerHTML = '<strong>Size of Space</strong>';
+    sizeGroup.appendChild(sizeHeading);
+    [
+      { text: 'Small (< 100 sq ft)', checked: false },
+      { text: 'Medium (100-220 sq ft)', checked: false },
+      { text: 'Large (> 220 sq ft)', checked: false }
+    ].forEach(item => {
+      const label = document.createElement('label');
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.checked = item.checked;
+      label.appendChild(input);
+      label.appendChild(document.createTextNode(' ' + item.text));
+      label.classList.add('size-group-input')
+      sizeGroup.appendChild(label);
+    });
+    sidebar.appendChild(sizeGroup);
 
-    const mainContent = document.createElement('div');
-    mainContent.classList.add('main-content');
+    return sidebar;
+  }
 
+  #createTopBarDiv() {
     const topBar = document.createElement('div');
     topBar.classList.add('top-bar');
 
+    //search bar 
     const searchBar = document.createElement('input');
     searchBar.type = 'text';
     searchBar.placeholder = 'Search';
     searchBar.classList.add('search-bar');
-    searchBar.addEventListener('input', (e) => {
-      this.currentSearch = e.target.value.toLowerCase();
-      this.renderProductsGrid();
-    });
     topBar.appendChild(searchBar);
 
+    // new, price ascending, and descending buttons 
     const tagToggleGroup = document.createElement('div');
     tagToggleGroup.classList.add('tag-toggle-group');
-    const toggleOptions = ['New', 'Price ascending', 'Price descending'];
-    toggleOptions.forEach((text, idx) => {
+    const toggleLabel = document.createElement('label');
+    toggleLabel.textContent = 'Sort by:';
+    tagToggleGroup.appendChild(toggleLabel);
+    ['New', 'Price ascending', 'Price descending'].forEach((text, idx) => {
       const btn = document.createElement('button');
       btn.classList.add('toggle');
       if (idx === 0) btn.classList.add('active');
       btn.textContent = text;
-      btn.addEventListener('click', () => {
-        tagToggleGroup.querySelectorAll('.toggle').forEach(t => t.classList.remove('active'));
-        btn.classList.add('active');
-        this.sortProducts(text);
-      });
       tagToggleGroup.appendChild(btn);
     });
     topBar.appendChild(tagToggleGroup);
-    mainContent.appendChild(topBar);
 
-    this.productsGrid = document.createElement('div');
-    this.productsGrid.classList.add('products-grid');
-    mainContent.appendChild(this.productsGrid);
-    this.renderProductsGrid();
-
-    flexContainer.appendChild(mainContent);
-    container.appendChild(flexContainer);
-
-    return container;
+    return topBar;
   }
 
-  renderProductsGrid() {
-    this.productsGrid.innerHTML = '';
-    const categoryCheckboxes = document.querySelectorAll('.checkbox-group input[data-category]');
-    const checkedCategories = Array.from(categoryCheckboxes)
-      .filter(cb => cb.checked)
-      .map(cb => cb.getAttribute('data-category'));
+  #populateListing(items) {
+    const listing = this.#container.querySelector('.storage-listings');
+    listing.innerHTML = '';
 
-    const deliveryCheckboxes = document.querySelectorAll('.delivery-group input[data-category]');
-    const checkedDelivery = Array.from(deliveryCheckboxes)
-      .filter(cb => cb.checked)
-      .map(cb => cb.getAttribute('data-category'));
-
-    const filteredProducts = this.sampleProducts.filter(prod => {
-      const productPrice = parseFloat(prod.price.substring(1));
-      const matchesCost = productPrice <= this.currentCostFilter;
-      const matchesSearch = this.matchesSearch(prod.title, this.currentSearch);
-      const categoryPass = (checkedCategories.length === 0) ? true : checkedCategories.includes(prod.tag);
-      const deliveryPass = (checkedDelivery.length === 0) ? true : checkedDelivery.includes(prod.delivery);
-      return matchesCost && matchesSearch && categoryPass && deliveryPass;
-    });
-
-    filteredProducts.forEach(prod => {
-      const card = document.createElement('div');
-      card.classList.add('product-card');
-
-      const imageDiv = document.createElement('div');
-      imageDiv.classList.add('product-image');
-      card.appendChild(imageDiv);
-
-      const h4 = document.createElement('h4');
-      h4.textContent = prod.title;
-      card.appendChild(h4);
-
-      const priceP = document.createElement('p');
-      priceP.textContent = prod.price;
-      card.appendChild(priceP);
-
-      card.setAttribute('data-postingDate', prod.postingDate);
-      card.setAttribute('data-price', prod.price.replace('$', ''));
-      this.productsGrid.appendChild(card);
-    });
+    items.forEach(item => {
+      const itemDiv = this.#createStorageItem(item);
+      listing.appendChild(itemDiv);
+    })
   }
 
-  matchesSearch(title, searchQuery) {
-    if (searchQuery.trim() === "") return true;
-    const tokens = searchQuery.trim().split(/\s+/);
-    const words = title.toLowerCase().split(/\s+/);
-    let tokenIndex = 0;
-    for (let word of words) {
-      if (word.startsWith(tokens[tokenIndex])) {
-        tokenIndex++;
-        if (tokenIndex === tokens.length) return true;
-      }
-    }
-    return false;
+  #createStorageItem(item) {
+    const storageItem = document.createElement('div');
+    storageItem.classList.add('storage-item');
+
+    const infoDiv = document.createElement('div');
+    infoDiv.classList.add('storage-info');
+    const h4 = document.createElement('h4');
+    h4.textContent = item.title;
+
+    infoDiv.appendChild(h4);
+    const pDuration = document.createElement('p');
+    pDuration.innerHTML = `<strong>Duration:</strong> ${item.duration}`;
+    infoDiv.appendChild(pDuration);
+    const pCost = document.createElement('p');
+    pCost.innerHTML = `<strong>Cost:</strong> ${item.cost}`;
+    infoDiv.appendChild(pCost);
+    const pSize = document.createElement('p');
+    pSize.innerHTML = `<strong>Size:</strong> ${item.size}`;
+    infoDiv.appendChild(pSize);
+    const pContact = document.createElement('p');
+    pContact.innerHTML = `<strong>Contact:</strong> ${item.contact}`;
+    infoDiv.appendChild(pContact);
+    const pDesc = document.createElement('p');
+    pDesc.innerHTML = `<strong>Description:</strong> ${item.description}`;
+    infoDiv.appendChild(pDesc);
+
+    storageItem.appendChild(infoDiv);
+    const imageDiv = document.createElement('div');
+    imageDiv.classList.add('storage-image');
+    storageItem.appendChild(imageDiv);
+    return storageItem;
   }
 
-  sortProducts(sortOption) {
-    if (sortOption === 'New') {
-      this.sampleProducts.sort((a, b) => new Date(b.postingDate) - new Date(a.postingDate));
-    } else if (sortOption === 'Price ascending') {
-      this.sampleProducts.sort((a, b) => parseFloat(a.price.substring(1)) - parseFloat(b.price.substring(1)));
-    } else if (sortOption === 'Price descending') {
-      this.sampleProducts.sort((a, b) => parseFloat(b.price.substring(1)) - parseFloat(a.price.substring(1)));
-    }
-    this.renderProductsGrid();
-  }
+  #addTag(value) {
+    const tagsDiv = this.#container.querySelector('.tags');
 
-  toggleDynamicTag(category, isChecked) {
-    if (isChecked) {
-      this.addDynamicTag(category);
-    } else {
-      this.removeDynamicTag(category);
-    }
-  }
-
-  addDynamicTag(category) {
-    if (this.dynamicTags.has(category)) return;
     const tag = document.createElement('span');
     tag.classList.add('tag');
-    tag.textContent = category;
-    const removeBtn = document.createElement('span');
-    removeBtn.classList.add('remove-tag');
-    removeBtn.textContent = ' x';
-    tag.appendChild(removeBtn);
-    this.dynamicTags.set(category, tag);
-    this.tagsDiv.appendChild(tag);
-    tag.addEventListener('click', () => {
-      this.toggleCheckbox(category, false);
-      this.removeDynamicTag(category);
-      this.renderProductsGrid();
-    });
+    tag.textContent = value;
+
+    const remove = document.createElement('span');
+    remove.classList.add('remove-tag');
+    remove.textContent = 'x';
+
+    const hub = EventHub.getInstance();
+    //event listener for removing tag
+    remove.addEventListener('click', () => {
+      tag.remove();
+      hub.subscribe(Events.StorageRemoveTag, () => this.#removeTag());
+      hub.publish(Events.StorageRemoveTag);
+    })
+
+    tag.appendChild(remove);
+    tagsDiv.appendChild(tag);
+    
+    //add a publish for filtering after it has been added
+    hub.publish(Events.StorageFilterAddTag, value);
+
   }
 
-  removeDynamicTag(category) {
-    if (this.dynamicTags.has(category)) {
-      const tag = this.dynamicTags.get(category);
-      if (tag.parentNode) tag.parentNode.removeChild(tag);
-      this.dynamicTags.delete(category);
-    }
+  #removeTag() {
+    const tags = this.#container.querySelectorAll('.tag');
+    console.log("tags: ", tags);
+    const tagsList = []
+    tags.forEach(tag => tagsList.push(tag.textContent.slice(0, -1)));
+    console.log("tagList: ", tagsList);
+    const hub = EventHub.getInstance();
+    if (tagsList.length == 0) {
+      hub.publish(Events.StorageUnfilteredList);
+    } else hub.publish(Events.StorageFilterRemoveTag, tagsList);
   }
 
-  toggleCheckbox(category, checkValue) {
-    const selector = `input[type="checkbox"][data-category="${category}"]`;
-    const checkboxes = document.querySelectorAll(selector);
-    checkboxes.forEach(cb => {
-      cb.checked = checkValue;
-      cb.dispatchEvent(new Event('change'));
+  #attachEventListeners() {
+    //create a hub instance
+    const hub = EventHub.getInstance();
+
+    //storage listings
+    hub.subscribe(Events.LoadStorageSuccess, (items) => {
+      console.log("items for populate listing: ", items);
+      this.#populateListing(items)
     });
+    hub.publish(Events.LoadStorageListings, 0);
+
+    //search bar
+    hub.subscribe(Events.StorageAddTag, (newTag) => this.#addTag(newTag));
+    const searchBar = this.#container.querySelector('.search-bar');
+    searchBar.addEventListener("keydown", function(event) {
+      if (event.key == "Enter") {
+        const value = searchBar.value.trim();
+        hub.publish(Events.StorageAddTag, value);
+        searchBar.value = "";
+      }
+    })
+
+    //price ascending, descending and new button. 
+    const allButtons = this.#container.querySelectorAll('.toggle');
+    allButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        allButtons.forEach(b => b.classList.remove('active'));
+        button.classList.add('active');
+        if (button.textContent == "Price ascending") hub.publish(Events.StoragePriceAscend);
+        else if (button.textContent == "Price descending") hub.publish(Events.StoragePriceDescend);
+        else hub.publish(Events.StorageUnfilteredList, 0);
+      })
+    })
+
+    //sidebar filters: storage space
+    const sizes = this.#container.querySelectorAll('.size-group-input');
+    // const sizeLabel = []
+    sizes.forEach(size => {
+      // sizeLabel.push(size.textContent);
+      size.addEventListener('click', () => {
+        let range = []
+        if (size.textContent[1] == "S") range = [-1, 100];
+        if (size.textContent[1] == "M") range = [100, 220];
+        if (size.textContent[1] == "L") range = [220, -1];
+        hub.publish(Events.StorageSpaceFilter, range);
+      });
+    });
+    
+
   }
+  
 }
