@@ -43,7 +43,7 @@ export class StorageListingService extends Service{
     async loadItemsFromDB(page) {
         this.page = page;
         const list = await this.loadAllItemsFromDB();
-        console.log("list in loaditems from DB: ", typeof(list));
+        // console.log("list in loaditems from DB: ", typeof(list));
         return new Promise((resolve, _) => {
             resolve(list.slice(page*10, page*10 + 11))
         });
@@ -67,7 +67,7 @@ export class StorageListingService extends Service{
                 //gets items from API if it's the first time loading or if the listing was updated by some user
                 if (items.result.length == 0) {
                     this.fetchFromAPI().then(list => {
-                        console.log("list in load all listings from DB: ", list);
+                        // console.log("list in load all listings from DB: ", list);
                         resolve(list);
                         this.addListToDB(list);
                     }).catch(err => reject(err));
@@ -88,7 +88,7 @@ export class StorageListingService extends Service{
             hub.subscribe(Events.LoadStorageServerSuccess, (data) => {
                 if (typeof(data) == String) reject(new Error("Error getting list from server.\n"));
                 data.then(list => {
-                    console.log("list from fetch: ", list);
+                    // console.log("list from fetch: ", list);
                     resolve(list);
                 }).catch((message) => console.error(message));
             });
@@ -148,7 +148,7 @@ export class StorageListingService extends Service{
     //note: for now, we only accept cost in a particular format
     async filterListByPrice(order) {
         const list = await this.loadAllItemsFromDB();
-        console.log("list in price filter function: ", list);
+        // console.log("list in price filter function: ", list);
         const compareByPrice = (a, b) => {
             if (a.cost < b.cost) return order == "ascending" ? -1 : 1;
             if (a.cost > b.cost) return order == "ascending" ? 1 : -1;
@@ -184,7 +184,7 @@ export class StorageListingService extends Service{
                 return tagList.filter(tag => tag.toLowerCase() == word.toLowerCase()).length !== 0
             }).length !== 0;
         })
-        console.log("filtered after removing tag: ", filtered);
+        // console.log("filtered after removing tag: ", filtered);
         this.rewriteToDB(filtered);
         return new Promise((resolve, _) => {resolve(filtered.slice(this.page*10, this.page*10 + 11))});
     }
@@ -204,7 +204,7 @@ export class StorageListingService extends Service{
         this.subscribe(Events.LoadStorageListings, (page) => {
             const list = this.loadItemsFromDB(page);
             list.then(items => {
-                console.log("items in load storage listings initial load: ", items);
+                // console.log("items in load storage listings initial load: ", items);
                 EventHub.getInstance().publish(Events.LoadStorageSuccess, items);
             }).catch(err => console.log(err));
         });
@@ -226,7 +226,7 @@ export class StorageListingService extends Service{
         this.subscribe(Events.StorageUnfilteredList, (page) => {
             const list = this.fetchFromAPI();
             list.then(items => {
-                console.log("Unfiltered list: ", items);
+                // console.log("Unfiltered list: ", items);
                 EventHub.getInstance().publish(Events.LoadStorageSuccess, items.slice(this.page*10, this.page*10 + 11));
             }).catch(err => console.log(err));
         });
@@ -246,7 +246,7 @@ export class StorageListingService extends Service{
         });
 
         this.subscribe(Events.StorageSpaceFilter, (spaceRange) => {
-            console.log("space size range: ", spaceRange);
+            // console.log("space size range: ", spaceRange);
             const filtered = this.filterBySpace(spaceRange);
             filtered.then(list =>
                 EventHub.getInstance().publish(Events.LoadStorageSuccess, list)

@@ -238,22 +238,6 @@ export class SellComponent extends BaseComponent {
           listed: false 
         };
         try {
-          // if (payload.tag == "Storage") {
-          //   const hub = EventHub.getInstance();
-          //   hub.subscribe(Events.AddStorageItemSuccess, (item) => {
-          //     if (typeof(item) == "String") throw new Error('Save failed');
-          //   })
-          //   hub.publish(Events.AddStorageItem, payload);
-          // } else {
-          //   const res = await fetch('/v1/tasks', {
-          //     method: 'POST',
-          //     headers: { 'Content-Type': 'application/json' },
-          //     body: JSON.stringify(payload)
-          //   });
-          //   if (!res.ok) throw new Error('Save failed');
-          //   await res.json();
-          // }
-          console.log("payload: ", payload.tag)
           const res = await fetch('/v1/tasks', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -365,7 +349,6 @@ export class SellComponent extends BaseComponent {
         });
   
       saveButton.addEventListener('click', () => {
-        console.log("here");
         const raw = localStorage.getItem('currentUser');
         const user = raw ? JSON.parse(raw) : null;
         if (!user) {
@@ -397,13 +380,11 @@ export class SellComponent extends BaseComponent {
         };
         try {
           const hub = EventHub.getInstance();
-          console.log("here2");
           hub.subscribe(Events.AddStorageItemSuccess, (item) => {
             if (typeof(item) == "String") throw new Error('Save failed');
             alert('Item saved successfully! You can list it for sale from your dashboard.');
             window.location.hash = '#user';
           })
-          console.log("here3");
           hub.publish(Events.AddStorageItem, payload);
         } catch (err) {
           console.error(err);

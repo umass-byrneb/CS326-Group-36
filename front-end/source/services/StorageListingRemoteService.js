@@ -10,7 +10,7 @@ export class StorageListingRemoteService extends Service {
 
     async loadTasks() {
         const response = await fetch("/v1/storage/listings");
-        console.log("response: ", response);
+        // console.log("response: ", response);
         if (response.ok) {
             const data = await response.text();
             const output = JSON.parse(data);
@@ -20,7 +20,7 @@ export class StorageListingRemoteService extends Service {
     }
 
     async addTasks(item) {
-        console.log("item received from request: ", item);
+        // console.log("item received from request: ", item);
         const response = await fetch("/v1/storage/listings", {
             method: "POST",
             headers: {
@@ -30,7 +30,7 @@ export class StorageListingRemoteService extends Service {
         })
         if (response.ok) {
             const newItem = await response.text();
-            console.log("item after adding: ", newItem);
+            // console.log("item after adding: ", newItem);
             return newItem;
         }
         return "Error in adding tasks";

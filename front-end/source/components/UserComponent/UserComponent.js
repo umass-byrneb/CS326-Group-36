@@ -118,7 +118,7 @@ export class UserComponent extends BaseComponent {
       const hub = EventHub.getInstance();
       hub.subscribe(Events.LoadStorageServerSuccess, (data) => {
         data.then(list => {
-          console.log("list in front end: ", list);
+          // console.log("list in front end: ", list);
           if (typeof(list) != "String") {
             storageItems = list;
           }
@@ -126,11 +126,11 @@ export class UserComponent extends BaseComponent {
       })
       hub.publish(Events.LoadStorageServer)
 
-      console.log("storage items on user page: ", storageItems);
-      console.log("this.loaded user products list before: ", this.loadedProducts);
+      // console.log("storage items on user page: ", storageItems);
+      // console.log("this.loaded user products list before: ", this.loadedProducts);
 
       storageItems.forEach(item => this.loadedProducts.push(item));
-      console.log("this.loaded user products list: ", this.loadedProducts);
+      // console.log("this.loaded user products list: ", this.loadedProducts);
 
       if (!this.loadedProducts.length) {
         this.itemsList.innerHTML = '<p>No items found. Please post a product.</p>';
@@ -197,10 +197,9 @@ export class UserComponent extends BaseComponent {
       alert('Items and Storage spaces cannot be listed together');
     }
     try {
-      console.log("item list: ", toList);
-      console.log("items for storage space: ", listStorage);
+      // console.log("item list: ", toList);
+      // console.log("items for storage space: ", listStorage);
       if (listStorage.length) {
-        console.log("here")
         idx = 0
         listStorage.forEach(storage => {
           const hub = EventHub.getInstance();
