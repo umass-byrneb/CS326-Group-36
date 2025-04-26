@@ -1,5 +1,7 @@
 // source/components/UserComponent/UserComponent.js
 import { BaseComponent } from '../BaseComponent/BaseComponent.js';
+import { EventHub } from '../../eventhub/EventHub.js';
+import { Events } from '../../eventhub/Events.js';
 
 export class UserComponent extends BaseComponent {
   constructor() {
@@ -110,6 +112,26 @@ export class UserComponent extends BaseComponent {
       if (!res.ok) throw new Error();
       const { tasks } = await res.json();
       this.loadedProducts = tasks.filter(t => t.owner === currentUser.email);
+
+      //load storage items
+      let storageItems = [];
+      const hub = EventHub.getInstance();
+      hub.subscribe(Events.LoadStorageServerSuccess, (data) => {
+        data.then(list => {
+          // console.log("list in front end: ", list);
+          if (typeof(list) != "String") {
+            storageItems = list;
+          }
+        })
+      })
+      hub.publish(Events.LoadStorageServer)
+
+      // console.log("storage items on user page: ", storageItems);
+      // console.log("this.loaded user products list before: ", this.loadedProducts);
+
+      storageItems.forEach(item => this.loadedProducts.push(item));
+      // console.log("this.loaded user products list: ", this.loadedProducts);
+
       if (!this.loadedProducts.length) {
         this.itemsList.innerHTML = '<p>No items found. Please post a product.</p>';
       } else {
@@ -126,6 +148,7 @@ export class UserComponent extends BaseComponent {
       const row = document.createElement('div');
       row.classList.add('item-row');
       row.dataset.id = prod.id;
+      row.dataset.tag = prod.tag;
       row.style.display = 'flex';
       row.style.gap = '1rem';
       row.style.alignItems = 'center';
@@ -164,20 +187,39 @@ export class UserComponent extends BaseComponent {
     const rows = Array.from(this.itemsList.querySelectorAll('.item-row'));
     const toList = rows
       .filter(r => r.querySelector('input').checked)
-      .map(r => Number(r.dataset.id));
+      // .map(r => Number(r.dataset.id));
     if (!toList.length) {
       alert('Please select items to list.');
       return;
     }
+    const listStorage = toList.filter(r => String(r.dataset.tag) == "Storage");
+    if (listStorage.length && listStorage.length !== toList.length) {
+      alert('Items and Storage spaces cannot be listed together');
+    }
     try {
-      await Promise.all(toList.map(id =>
-        fetch(`/v1/tasks/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ listed: true })
+      // console.log("item list: ", toList);
+      // console.log("items for storage space: ", listStorage);
+      if (listStorage.length) {
+        idx = 0
+        listStorage.forEach(storage => {
+          const hub = EventHub.getInstance();
+          hub.subscribe(Events.UpdateStorageItemSuccess, () => {
+            ++idx;
+            if (idx === listStorage.length - 1) window.location.hash = '#storage';
+          })
+          hub.publish(Events.UpdateStorageItem, storage);
         })
-      ));
-      window.location.hash = '#buy';
+      } else if (toList.length) {
+        await Promise.all(toList.map(row => {
+          const id = row.dataset.id;
+          fetch(`/v1/tasks/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ listed: true })
+          })}
+        ));
+        window.location.hash = '#buy';
+      }
     } catch {
       alert('Error listing items.');
     }
