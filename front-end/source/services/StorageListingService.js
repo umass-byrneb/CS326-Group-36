@@ -1,7 +1,7 @@
 import { Events } from "../eventhub/Events.js"
 import { EventHub } from "../eventhub/EventHub.js";
 import Service from "./Service.js"
-import { StorageListingFakeService } from "./StorageListingFakeService.js";
+import { StorageListingRemoteService } from "./StorageListingRemoteService.js";
 
 export class StorageListingService extends Service{
     constructor() {
@@ -16,7 +16,7 @@ export class StorageListingService extends Service{
     static register() {
         if (!StorageListingService.instance) {
             StorageListingService.instance = new StorageListingService();
-            const fakeServer = new StorageListingFakeService();
+            const fakeServer = new StorageListingRemoteService();
         }
         return StorageListingService.instance;
     }
@@ -43,6 +43,7 @@ export class StorageListingService extends Service{
     async loadItemsFromDB(page) {
         this.page = page;
         const list = await this.loadAllItemsFromDB();
+        console.log("list in loaditems from DB: ", typeof(list));
         return new Promise((resolve, _) => {
             resolve(list.slice(page*10, page*10 + 11))
         });
@@ -66,6 +67,7 @@ export class StorageListingService extends Service{
                 //gets items from API if it's the first time loading or if the listing was updated by some user
                 if (items.result.length == 0) {
                     this.fetchFromAPI().then(list => {
+                        console.log("list in load all listings from DB: ", list);
                         resolve(list);
                         this.addListToDB(list);
                     }).catch(err => reject(err));
@@ -86,9 +88,9 @@ export class StorageListingService extends Service{
             hub.subscribe(Events.LoadStorageServerSuccess, (data) => {
                 if (typeof(data) == String) reject(new Error("Error getting list from server.\n"));
                 data.then(list => {
-                    console.log("on mock server")
+                    console.log("list from fetch: ", list);
                     resolve(list);
-                }).then((message) => console.log(message)).catch((message) => console.error(message));
+                }).catch((message) => console.error(message));
             });
             hub.publish(Events.LoadStorageServer);
         })
@@ -146,6 +148,7 @@ export class StorageListingService extends Service{
     //note: for now, we only accept cost in a particular format
     async filterListByPrice(order) {
         const list = await this.loadAllItemsFromDB();
+        console.log("list in price filter function: ", list);
         const compareByPrice = (a, b) => {
             if (a.cost < b.cost) return order == "ascending" ? -1 : 1;
             if (a.cost > b.cost) return order == "ascending" ? 1 : -1;
@@ -201,6 +204,7 @@ export class StorageListingService extends Service{
         this.subscribe(Events.LoadStorageListings, (page) => {
             const list = this.loadItemsFromDB(page);
             list.then(items => {
+                console.log("items in load storage listings initial load: ", items);
                 EventHub.getInstance().publish(Events.LoadStorageSuccess, items);
             }).catch(err => console.log(err));
         });
