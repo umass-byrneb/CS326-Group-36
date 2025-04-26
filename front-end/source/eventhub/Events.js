@@ -37,5 +37,9 @@ export const Events = {
 
   //update storage listings (called when item is being upload for sale or is being bought)
   AddStorageItem: 'AddStorageItem',
+  AddStorageItemSuccess: 'AddStorageItemSucces',
   RemoveStorageItem: 'RemoveStorageItem',
+  RemoveStorageItemSuccess: 'RemoveStorageItemSucess',
+  UpdateStorageItem: 'UpdateStorageItem',
+  UpdateStorageItemSuccess: 'UpdateStorageItemSucess',
 };
