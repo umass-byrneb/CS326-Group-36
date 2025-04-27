@@ -4,5 +4,35 @@
     "fullname": "brandon",
     "email": "byrne.br@gmail.com",
     "password": "brandon"
+  },
+  {
+    "id": 2,
+    "fullname": "Sargam",
+    "email": "snohria19@gmail.com",
+    "password": "sargam"
+  },
+  {
+    "id": 3,
+    "fullname": "sargam",
+    "email": "snohria@gmail.com",
+    "password": "sargam"
+  },
+  {
+    "id": 4,
+    "fullname": "sargs",
+    "email": "sargs@gmail.com",
+    "password": "sargam"
+  },
+  {
+    "id": 5,
+    "fullname": "sargs2",
+    "email": "sargs2@gmail.com",
+    "password": "sargam"
+  },
+  {
+    "id": 6,
+    "fullname": "sargs3",
+    "email": "sargs3@gmail.com",
+    "password": "sargam"
   }
 ]
