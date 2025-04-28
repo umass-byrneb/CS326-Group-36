@@ -64,7 +64,14 @@ export class LoginComponent extends BaseComponent {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: em, password: pw })
         });
-        const data = await res.json();
+        let data = {};
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          data = await res.json();
+        } else {
+          const text = await res.text(); 
+          console.warn('Expected JSON but got:', text);
+        }
         if (!res.ok) throw new Error(data.error || 'Login failed');
         localStorage.setItem('currentUser', JSON.stringify(data));
         form.reset();
