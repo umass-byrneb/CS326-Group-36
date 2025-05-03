@@ -15,7 +15,7 @@ npm i
 npm run dev  
 --API(Express +SQLite) http://localhost:3000  
 --Front End http://localhost:5000  
---Register & log in, add/list items, use storage, etc.  
+--Register & log in, add/list items, use storage, ENJOY!
 
 ## Project Description 
 **Problem:** Every year students buy new furniture every year to offset costs of storage and leading to tons of waste at the end of every semester.\
