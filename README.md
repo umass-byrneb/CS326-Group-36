@@ -13,7 +13,8 @@ git clone https://github.com/umass-byrneb/CS326-Group-36.git
 cd CS326-Group-36  
 npm i   
 npm run start
-  
+
+**Alternatively**
 --API(Express +SQLite) http://localhost:3000  
 --Front End http://localhost:5000  
 --Register & log in, add/list items, use storage, ENJOY!
