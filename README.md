@@ -1,7 +1,7 @@
 # College Clutter-Group 36
 ## Table of Contents
-- [How to Run](#)
-- [Project Description](#How-to-Run)
+- [How to Run](#How-to-Run)
+- [Project Description](#Project-Description)
 - [Team Members](#Team-Members)
 - [Milestone #2](https://github.com/umass-byrneb/CS326-Group-36/blob/main/docs/milestone_2/Milestone2_Group36.pdf)
 - [Milestone #3](https://github.com/umass-byrneb/CS326-Group-36/blob/main/docs/milestone_2/Milestone2_Group36.pdf)
