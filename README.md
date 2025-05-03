@@ -14,7 +14,8 @@ cd CS326-Group-36
 npm i   
 npm run start
 
-**Alternatively**
+**Alternatively**  
+npm run dev  
 --API(Express +SQLite) http://localhost:3000  
 --Front End http://localhost:5000  
 --Register & log in, add/list items, use storage, ENJOY!
