@@ -50,4 +50,18 @@
   .login-links a:hover {
     color: #000;
   }
+  .register-links {
+    margin-top: 1.5rem;
+    text-align: center;
+  }
+  
+  .register-links a {
+    color: #666;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  
+  .register-links a:hover {
+    text-decoration: underline;
+  }
   

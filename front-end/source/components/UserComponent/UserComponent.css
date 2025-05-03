@@ -59,4 +59,27 @@
     gap: 1rem;
     justify-content: flex-end;
   }
+  .user-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .profile-btns {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .user-actions {
+    display: flex;
+    justify-content: flex-end;  
+    gap: 1rem;                  
+    margin-top: 1.5rem;         
+  }
+  .btn-danger {
+    background-color: #d9534f;
+    color: #fff;
+  }
+  .btn-danger:hover {
+    background-color: #c9302c;
+  }
   

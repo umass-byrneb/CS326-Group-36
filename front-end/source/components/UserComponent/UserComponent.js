@@ -1,248 +1,254 @@
-// source/components/UserComponent/UserComponent.js
 import { BaseComponent } from '../BaseComponent/BaseComponent.js';
-import { EventHub } from '../../eventhub/EventHub.js';
-import { Events } from '../../eventhub/Events.js';
 
 export class UserComponent extends BaseComponent {
   constructor() {
     super();
     this.loadCSS('UserComponent');
-    this.loadedProducts = [];
+    this.items = [];
   }
 
   render() {
-    const rawUser = localStorage.getItem('currentUser');
-    const currentUser = rawUser ? JSON.parse(rawUser) : null;
+    const raw = localStorage.getItem('currentUser');
+    const user = raw ? JSON.parse(raw) : null;
 
-    // If not logged in, show prompt and no actions
-    if (!currentUser) {
-      const msgSection = document.createElement('section');
-      msgSection.classList.add('user-page');
-      msgSection.innerHTML = `
+    if (!user) {
+      const section = document.createElement('section');
+      section.classList.add('user-page');
+      section.innerHTML = `
         <div class="user-not-logged-in">
-          <p>Please <a href="#login">log in</a> to view your dashboard.</p>
-        </div>
-      `;
-      return msgSection;
+          <p>Please <a href="#login">log in</a> to view your items.</p>
+        </div>`;
+      return section;
     }
 
-    const container = document.createElement('section');
-    container.classList.add('user-page');
+    this.container = document.createElement('section');
+    this.container.classList.add('user-page');
 
-    const headerBar = document.createElement('div');
-    headerBar.classList.add('user-header');
-    headerBar.style.display = 'flex';
-    headerBar.style.justifyContent = 'space-between';
-    headerBar.style.alignItems = 'center';
-    headerBar.style.marginBottom = '1rem';
+    const header = document.createElement('div');
+    header.classList.add('user-header');
 
     const title = document.createElement('h1');
     title.classList.add('section-title');
-    title.textContent = `${currentUser.fullname}'s Items`;
-    headerBar.appendChild(title);
+    title.textContent = `${user.fullname}'s Items`;
+    header.appendChild(title);
 
-    const btnGroup = document.createElement('div');
-    btnGroup.style.display = 'flex';
-    btnGroup.style.gap = '0.5rem';
+    const profileBtns = document.createElement('div');
+    profileBtns.classList.add('profile-btns');
 
-    const logoutBtn = document.createElement('button');
-    logoutBtn.classList.add('btn', 'btn-neutral');
-    logoutBtn.textContent = 'Logout';
-    logoutBtn.addEventListener('click', () => {
+    const logoutBtn = this._createButton('Logout', 'btn-neutral', () => {
       localStorage.removeItem('currentUser');
       window.location.hash = '#';
     });
-    btnGroup.appendChild(logoutBtn);
+    profileBtns.appendChild(logoutBtn);
 
-    const deleteProfileBtn = document.createElement('button');
-    deleteProfileBtn.classList.add('btn');
-    deleteProfileBtn.style.backgroundColor = '#e53e3e';
-    deleteProfileBtn.style.color = '#fff';
-    deleteProfileBtn.textContent = 'Delete Profile';
-    deleteProfileBtn.addEventListener('click', async () => {
-      if (!confirm(
-        'Are you sure? This will remove your account and all items.'
-      )) return;
-      try {
-        const res = await fetch(`/v1/users/${currentUser.id}`, { method: 'DELETE' });
-        if (!res.ok) throw new Error();
-        localStorage.removeItem('currentUser');
-        alert('Profile and items deleted.');
-        window.location.hash = '#';
-      } catch {
-        alert('Error deleting profile.');
-      }
+    const deleteProfileBtn = this._createButton('Delete Profile', 'btn-danger', () => {
+      this._showDeleteProfileConfirm(user.id);
     });
-    btnGroup.appendChild(deleteProfileBtn);
+    profileBtns.appendChild(deleteProfileBtn);
 
-    headerBar.appendChild(btnGroup);
-    container.appendChild(headerBar);
+    header.appendChild(profileBtns);
+    this.container.appendChild(header);
 
-    this.itemsList = document.createElement('div');
-    this.itemsList.classList.add('items-list');
-    container.appendChild(this.itemsList);
+    this.errorDiv = document.createElement('div');
+    this.errorDiv.classList.add('user-error');
+    this.container.appendChild(this.errorDiv);
+
+    this.list = document.createElement('div');
+    this.list.classList.add('items-list');
+    this.container.appendChild(this.list);
+
+    this.btnList   = this._createButton('List Selected Items',   'btn-neutral', () => this._bulkUpdate(true));
+    this.btnDelete = this._createButton('Delete Selected Items', 'btn-neutral',  () => this._bulkDelete());
+    this.btnStore  = this._createButton('Store Selected Items',  'btn-neutral', () => this._storeItems());
+    [this.btnList, this.btnDelete, this.btnStore].forEach(b => b.disabled = true);
 
     const actions = document.createElement('div');
     actions.classList.add('user-actions');
-    actions.style.marginTop = '1rem';
+    actions.append(this.btnList, this.btnDelete, this.btnStore);
+    this.container.appendChild(actions);
 
-    const listBtn = document.createElement('button');
-    listBtn.classList.add('btn', 'btn-neutral');
-    listBtn.textContent = 'List Selected Items';
-    listBtn.addEventListener('click', () => this.sellSelectedItems());
-    actions.appendChild(listBtn);
+    this._loadItems(user.email);
 
-    const deleteBtn = document.createElement('button');
-    deleteBtn.classList.add('btn', 'btn-neutral');
-    deleteBtn.style.marginLeft = '0.5rem';
-    deleteBtn.textContent = 'Delete Selected Items';
-    deleteBtn.addEventListener('click', () => this.deleteSelectedItems());
-    actions.appendChild(deleteBtn);
-
-    container.appendChild(actions);
-
-    this.loadUserProducts(currentUser);
-    return container;
+    return this.container;
   }
 
-  async loadUserProducts(currentUser) {
-    this.itemsList.innerHTML = '';
+  _createButton(text, variant, onClick) {
+    const btn = document.createElement('button');
+    btn.classList.add('btn', variant);
+    btn.textContent = text;
+    btn.addEventListener('click', onClick);
+    return btn;
+  }
+
+  async _loadItems(ownerEmail) {
+    this.list.innerHTML = '';
+    this._clearError();
     try {
-      const res = await fetch('/v1/tasks');
-      if (!res.ok) throw new Error();
-      const { tasks } = await res.json();
-      this.loadedProducts = tasks.filter(t => t.owner === currentUser.email);
-
-      //load storage items
-      let storageItems = [];
-      const hub = EventHub.getInstance();
-      hub.subscribe(Events.LoadStorageServerSuccess, (data) => {
-        data.then(list => {
-          // console.log("list in front end: ", list);
-          if (typeof(list) != "String") {
-            storageItems = list;
-          }
-        })
-      })
-      hub.publish(Events.LoadStorageServer)
-
-      // console.log("storage items on user page: ", storageItems);
-      // console.log("this.loaded user products list before: ", this.loadedProducts);
-
-      storageItems.forEach(item => this.loadedProducts.push(item));
-      // console.log("this.loaded user products list: ", this.loadedProducts);
-
-      if (!this.loadedProducts.length) {
-        this.itemsList.innerHTML = '<p>No items found. Please post a product.</p>';
+      const resp = await fetch('/v1/tasks');
+      const { tasks } = await resp.json();
+      this.items = tasks.filter(t => t.owner === ownerEmail);
+      if (this.items.length === 0) {
+        this.list.innerHTML = `<p>No items found. Please post a product.</p>`;
       } else {
-        this.renderUserItems(this.loadedProducts);
+        this.items.forEach(item => this._renderItemRow(item));
       }
     } catch {
-      this.itemsList.textContent = 'Error loading items.';
+      this._showError('Error loading items.');
     }
   }
 
-  renderUserItems(products) {
-    this.itemsList.innerHTML = '';
-    products.forEach(prod => {
-      const row = document.createElement('div');
-      row.classList.add('item-row');
-      row.dataset.id = prod.id;
-      row.dataset.tag = prod.tag;
-      row.style.display = 'flex';
-      row.style.gap = '1rem';
-      row.style.alignItems = 'center';
-      row.style.padding = '0.5rem 0';
+  _renderItemRow(item) {
+    const row = document.createElement('div');
+    row.classList.add('item-row');
+    row.dataset.id = item.id;
 
-      const img = document.createElement('img');
-      img.src = prod.image;
-      img.alt = prod.name;
-      img.style.width = '80px';
-      img.style.height = '80px';
-      img.style.objectFit = 'cover';
-      row.appendChild(img);
+    const img = document.createElement('img');
+    img.src = item.image;
+    img.alt = item.name;
+    img.classList.add('item-image');
+    row.appendChild(img);
 
-      const details = document.createElement('div');
-      details.style.flex = '1';
-      details.innerHTML = `
-        <h2 style="margin:0">${prod.name}</h2>
-        <p style="margin:0.25rem 0">Cost: ${prod.cost}</p>
-        <p style="margin:0.25rem 0">Tag: ${prod.tag}</p>
-        <p style="margin:0.25rem 0">Delivery: ${prod.delivery}</p>
-        <p style="margin:0.25rem 0">Listed: ${prod.listed ? 'Yes' : 'No'}</p>
-      `;
-      row.appendChild(details);
+    const details = document.createElement('div');
+    details.classList.add('item-details');
+    details.innerHTML = `
+      <h2>${item.name}</h2>
+      <p>${item.description}</p>
+      <p>Cost: ${item.cost}</p>
+      <p>Tag: ${item.tag}</p>
+      <p>Delivery: ${item.delivery}</p>
+      <p>Listed: ${item.listed ? 'Yes' : 'No'}</p>
+    `;
+    row.appendChild(details);
 
-      const cbDiv = document.createElement('div');
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      cbDiv.appendChild(checkbox);
-      row.appendChild(cbDiv);
+    const cbContainer = document.createElement('div');
+    cbContainer.classList.add('item-checkbox');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.addEventListener('change', () => this._updateActionButtons());
+    cbContainer.appendChild(checkbox);
+    row.appendChild(cbContainer);
 
-      this.itemsList.appendChild(row);
-    });
+    this.list.appendChild(row);
   }
 
-  async sellSelectedItems() {
-    const rows = Array.from(this.itemsList.querySelectorAll('.item-row'));
-    const toList = rows
-      .filter(r => r.querySelector('input').checked)
-      // .map(r => Number(r.dataset.id));
-    if (!toList.length) {
-      alert('Please select items to list.');
-      return;
-    }
-    const listStorage = toList.filter(r => String(r.dataset.tag) == "Storage");
-    if (listStorage.length && listStorage.length !== toList.length) {
-      alert('Items and Storage spaces cannot be listed together');
-    }
-    try {
-      // console.log("item list: ", toList);
-      // console.log("items for storage space: ", listStorage);
-      if (listStorage.length) {
-        idx = 0
-        listStorage.forEach(storage => {
-          const hub = EventHub.getInstance();
-          hub.subscribe(Events.UpdateStorageItemSuccess, () => {
-            ++idx;
-            if (idx === listStorage.length - 1) window.location.hash = '#storage';
-          })
-          hub.publish(Events.UpdateStorageItem, storage);
-        })
-      } else if (toList.length) {
-        await Promise.all(toList.map(row => {
-          const id = row.dataset.id;
-          fetch(`/v1/tasks/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ listed: true })
-          })}
-        ));
-        window.location.hash = '#buy';
-      }
-    } catch {
-      alert('Error listing items.');
-    }
-  }
-
-  async deleteSelectedItems() {
-    const rows = Array.from(this.itemsList.querySelectorAll('.item-row'));
-    const toDelete = rows
+  _getSelectedIds() {
+    return Array.from(this.list.querySelectorAll('.item-row'))
       .filter(r => r.querySelector('input').checked)
       .map(r => Number(r.dataset.id));
-    if (!toDelete.length) {
-      alert('Please select items to delete.');
+  }
+
+  _updateActionButtons() {
+    const has = this._getSelectedIds().length > 0;
+    this.btnList.disabled   = !has;
+    this.btnDelete.disabled = !has;
+    this.btnStore.disabled  = !has;
+    this._clearError();
+  }
+
+  async _bulkUpdate(listed) {
+    this._clearError();
+    const ids = this._getSelectedIds();
+    if (!ids.length) {
+      this._showError('Select at least one item to list.');
       return;
     }
     try {
-      await Promise.all(toDelete.map(id =>
+      await Promise.all(ids.map(id =>
+        fetch(`/v1/tasks/${id}`, {
+          method: 'PUT',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ listed })
+        })
+      ));
+      window.location.hash = listed ? '#buy' : '#user';
+    } catch {
+      this._showError('Failed to update items.');
+    }
+  }
+
+  async _bulkDelete() {
+    this._clearError();
+    const ids = this._getSelectedIds();
+    if (!ids.length) {
+      this._showError('Select at least one item to delete.');
+      return;
+    }
+    try {
+      await Promise.all(ids.map(id =>
         fetch(`/v1/tasks/${id}`, { method: 'DELETE' })
       ));
-      const rawUser = localStorage.getItem('currentUser');
-      const user = rawUser ? JSON.parse(rawUser) : null;
-      this.loadUserProducts(user);
+      const user = JSON.parse(localStorage.getItem('currentUser'));
+      this._loadItems(user.email);
     } catch {
-      alert('Error deleting items.');
+      this._showError('Failed to delete items.');
     }
+  }
+
+  _storeItems() {
+    this._clearError();
+    const ids = this._getSelectedIds();
+    if (!ids.length) {
+      this._showError('Select at least one item to store.');
+      return;
+    }
+    const selected = this.items
+      .filter(item => ids.includes(item.id))
+      .map(item => ({ id: item.id, name: item.name }));
+    localStorage.setItem('toStoreItems', JSON.stringify(selected));
+    window.location.hash = '#storage';
+  }
+
+  _showDeleteProfileConfirm(userId) {
+    // remove existing overlays
+    document.body.querySelectorAll('.confirmation-overlay').forEach(el => el.remove());
+
+    const overlay = document.createElement('div');
+    overlay.classList.add('confirmation-overlay');
+
+    const box = document.createElement('div');
+    box.classList.add('confirmation-box');
+    box.innerHTML = `
+      <h3>Delete Profile?</h3>
+      <p>This will remove your account and all your items. Proceed?</p>
+    `;
+
+    const btns = document.createElement('div');
+    btns.classList.add('confirm-buttons');
+
+    const cancel = document.createElement('button');
+    cancel.classList.add('btn','btn-neutral');
+    cancel.textContent = 'Cancel';
+    cancel.addEventListener('click', () => overlay.remove());
+
+    const confirm = document.createElement('button');
+    confirm.classList.add('btn','btn-danger');
+    confirm.textContent = 'Delete';
+    confirm.addEventListener('click', async () => {
+      try {
+        const resp = await fetch(`/v1/users/${userId}`, { method: 'DELETE' });
+        if (!resp.ok) throw new Error();
+        localStorage.removeItem('currentUser');
+        overlay.remove();
+        window.location.hash = '#';
+      } catch {
+        overlay.remove();
+        this._showError('Failed to delete profile.');
+      }
+    });
+
+    btns.append(cancel, confirm);
+    box.appendChild(btns);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+  }
+
+  _showError(msg) {
+    this.errorDiv.textContent = msg;
+    this.errorDiv.classList.add('visible');
+  }
+
+  _clearError() {
+    this.errorDiv.textContent = '';
+    this.errorDiv.classList.remove('visible');
   }
 }

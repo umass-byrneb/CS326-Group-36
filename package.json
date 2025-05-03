@@ -1,18 +1,19 @@
 {
-    "name": "collegeclutter",
-    "version": "1.0.0",
-    "description": "A front-end single-page application for College Clutter using a component-based architecture.",
-    "main": "source/main.js",
-    "type": "module",
-    "scripts": {
-      "start": "http-server ./source -c-1",
-      "build": "echo \"No build step defined\""
-    },
-    "author": "",
-    "license": "MIT",
-    "dependencies": {},
-    "devDependencies": {
-      "http-server": "^14.1.1"
-    }
+  "private": true,
+  "workspaces": [
+    "front-end",
+    "back-end"
+  ],
+  "scripts": {
+    "dev:backend": "npm --workspace back-end run dev",
+    "dev:frontend": "serve front-end/source -l 5000",
+    "dev": "concurrently -k \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "start:backend": "npm --workspace back-end start",
+    "start:frontend": "serve front-end/source",
+    "start": "npm run start:backend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.0",
+    "serve": "^14.0.0"
   }
-  
+}
