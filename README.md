@@ -6,8 +6,6 @@
 - [Milestone #3](https://github.com/umass-byrneb/CS326-Group-36/blob/main/docs/milestone_2/Milestone2_Group36.pdf)
 - [Milestone #4](https://github.com/umass-byrneb/CS326-Group-36/blob/main/docs/milestone_4/Milestone4_Group36.pdf)
 - [Milestone #5](https://github.com/umass-byrneb/CS326-Group-36/blob/main/docs/milestone_5/Milestone5_Group36.pdf)
-- [Milestone #6](https://github.com/umass-byrneb/CS326-Group-36/blob/main/docs/milestone_6/Milestone6_group36.pdf)
-
   
 ## Project Description 
 **Problem:** Every year students buy new furniture every year to offset costs of storage and leading to tons of waste at the end of every semester.\

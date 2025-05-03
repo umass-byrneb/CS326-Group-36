@@ -14,7 +14,6 @@ export class NavbarComponent extends BaseComponent {
     const logoLink = document.createElement('a');
     logoLink.href = '#landing';
     logoLink.classList.add('logo');
-    // logoLink.textContent = 'CollegeClutter';
     const collegeText = document.createElement('span');
     collegeText.textContent = "College";
     collegeText.classList.add('college');

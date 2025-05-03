@@ -5,7 +5,6 @@
 
 .sell-container {
   display: flex;
-  flex-direction: row;
   gap: 2rem;
   align-items: stretch;
 }
@@ -15,15 +14,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 30%;
-}
-
-.sell-post {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-right: 2rem;
-  margin-left: 2rem;
 }
 
 .sell-image {
@@ -34,15 +24,6 @@
   object-fit: cover;
   border: 1px solid #ccc;
   border-radius: 4px;
-}
-
-.button-container .button {
-  background-color: #D58936;
-  border: 1px solid #D58936;
-  border-radius: 4px;
-  padding: 0.5rem 0.75rem;
-  cursor: pointer;
-  transition: 0.2s;
 }
 
 .sell-details {
