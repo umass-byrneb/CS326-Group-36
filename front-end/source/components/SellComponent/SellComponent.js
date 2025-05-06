@@ -74,7 +74,7 @@ export class SellComponent extends BaseComponent {
     const sellPost = document.createElement('div');
     sellPost.classList.add('sell-post');
 
-    const buttonContainer = document.createElement('div');
+    const buttonContainer = document.createElement('spa');
     buttonContainer.classList.add('button-container');
     buttonContainer.style.display = 'flex';
     buttonContainer.style.gap = '10px';
@@ -123,7 +123,7 @@ export class SellComponent extends BaseComponent {
         placeholder: 'Enter product name',
         required: true
       });
-      details.appendChild(this.makeField('Product Name', productNameInput));
+      details.appendChild(this.makeField('Product Name: ', productNameInput));
   
       const tagSelect = document.createElement('select');
       tagSelect.id = 'tag';
@@ -145,7 +145,7 @@ export class SellComponent extends BaseComponent {
         step: '0.01',
         required: true
       });
-      details.appendChild(this.makeField('Cost', costInput));
+      details.appendChild(this.makeField('Cost: ', costInput));
   
       const row = document.createElement('div');
       row.style.display = 'flex';
@@ -161,7 +161,7 @@ export class SellComponent extends BaseComponent {
           if (opt === 'Select Contact') { o.disabled = true; o.selected = true; }
           contactSelect.appendChild(o);
         });
-      row.appendChild(this.makeField('Contact', contactSelect));
+      row.appendChild(this.makeField('Contact: ', contactSelect));
   
       const deliverySelect = document.createElement('select');
       deliverySelect.id = 'delivery';
@@ -173,7 +173,7 @@ export class SellComponent extends BaseComponent {
           if (opt.startsWith('Select')) { o.disabled = true; o.selected = true; }
           deliverySelect.appendChild(o);
         });
-      row.appendChild(this.makeField('Delivery', deliverySelect));
+      row.appendChild(this.makeField('Delivery: ', deliverySelect));
   
       details.appendChild(row);
   
@@ -182,7 +182,7 @@ export class SellComponent extends BaseComponent {
       descInput.required = true;
       descInput.placeholder = 'Enter product description';
       descInput.rows = 4;
-      details.appendChild(this.makeField('Description', descInput));
+      details.appendChild(this.makeField('Description: ', descInput));
   
   
       const saveButton = document.createElement('button');
@@ -284,7 +284,11 @@ export class SellComponent extends BaseComponent {
         required: true
       });
       details.appendChild(this.makeField('Duration: ', durationInput));
-  
+
+      const row = document.createElement('div');
+      row.style.display = 'flex';
+      row.style.gap = '1rem';
+    
       const costInput = Object.assign(document.createElement('input'), {
         type: 'number',
         id: 'storage-cost',
@@ -293,7 +297,7 @@ export class SellComponent extends BaseComponent {
         step: '0.01',
         required: true
       });
-      details.appendChild(this.makeField('Cost', costInput));
+      row.appendChild(this.makeField('Cost: ', costInput));
 
       const sizeInput = Object.assign(document.createElement('input'), {
         type: 'number',
@@ -303,7 +307,9 @@ export class SellComponent extends BaseComponent {
         step: '0.01',
         required: true
       });
-      details.appendChild(this.makeField('Size: ', sizeInput));
+      row.appendChild(this.makeField('Size: ', sizeInput));
+
+      details.appendChild(row);
   
       const contactSelect = document.createElement('select');
       contactSelect.id = 'contact';
@@ -392,6 +398,7 @@ export class SellComponent extends BaseComponent {
         }
       });
     })
+    itemButton.click();
     return container;
   }
 
@@ -448,7 +455,7 @@ export class SellComponent extends BaseComponent {
       <h2>${title || 'No name'}</h2>
       <p><strong>Duration: </strong> ${duration || '—'}</p>
       <p><strong>Cost: </strong> ${cost || '—'}</p>
-      <p><strong>Size: </strong> ${size || '—'}</p>
+      <p><strong>Size: </strong> ${size || '—'} sq ft</p>
       <p><strong>Contact: </strong> ${contact || '—'}</p>
       <p>${description || ''}</p>
     `;
