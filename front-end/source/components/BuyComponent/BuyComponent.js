@@ -5,240 +5,310 @@ export class BuyComponent extends BaseComponent {
     super();
     this.loadCSS('BuyComponent');
     this.products = [];
+    this.state = {
+      categories: new Set(),
+      deliveries: new Set(),
+      maxCost: 0,
+      search: '',
+      sort: 'New',
+    };
     this.dynamicTags = new Map();
-    this.currentCostFilter = 0;
-    this.currentSearch = '';
-    this.currentSort = 'New';
   }
 
   render() {
-    const container = document.createElement('section');
-    container.classList.add('buy-page');
+    this.element = document.createElement('section');
+    this.element.classList.add('buy-page');
 
-    const flexContainer = document.createElement('div');
-    flexContainer.classList.add('flex-container');
+    this.notificationDiv = document.createElement('div');
+    this.notificationDiv.classList.add('notification');
+    this.notificationDiv.style.display = 'none';
+    this.element.appendChild(this.notificationDiv);
+
+    const flex = document.createElement('div');
+    flex.classList.add('flex-container');
+    this.element.appendChild(flex);
 
     const sidebar = document.createElement('aside');
     sidebar.classList.add('sidebar');
-    sidebar.innerHTML = '<h3>Keywords</h3>';
+    flex.appendChild(sidebar);
+
     this.tagsDiv = document.createElement('div');
     this.tagsDiv.classList.add('tags');
-    sidebar.appendChild(this.tagsDiv);
+    sidebar.append(
+      Object.assign(document.createElement('h3'), { textContent: 'Filters' }),
+      this.tagsDiv
+    );
 
-    const catGroup = document.createElement('div');
-    catGroup.classList.add('checkbox-group');
-    ['Furniture','Kitchen Item','Bathroom Item','Decor','Storage','Other']
-      .forEach(cat => {
-        const label = document.createElement('label');
-        label.innerHTML = `<input type="checkbox" data-category="${cat}"> ${cat}`;
-        label.querySelector('input').addEventListener('change', () => {
-          this.toggleDynamicTag(cat, label.querySelector('input').checked);
-          this.renderProductsGrid();
-        });
-        catGroup.appendChild(label);
-      });
-    sidebar.appendChild(catGroup);
+    this._renderCheckboxGroup(
+      sidebar,
+      'Category',
+      ['Furniture', 'Kitchen Item', 'Bathroom Item', 'Decor', 'Storage', 'Other'],
+      (opt) => {
+        this._toggleFilter('categories', opt);
+        this._renderGrid();
+      }
+    );
 
-    const costLabel = document.createElement('label');
-    costLabel.textContent = 'Cost';
-    costLabel.htmlFor = 'cost-slider';
-    sidebar.appendChild(costLabel);
-    this.costDisplay = document.createElement('p');
-    sidebar.appendChild(this.costDisplay);
-    this.slider = document.createElement('input');
-    this.slider.type = 'range';
-    this.slider.id = 'cost-slider';
-    this.slider.addEventListener('input', () => {
-      this.currentCostFilter = +this.slider.value;
-      this.costDisplay.textContent = `$0 - $${this.slider.value}`;
-      this.renderProductsGrid();
-    });
-    sidebar.appendChild(this.slider);
+    this._renderCostSlider(sidebar);
 
-    const delGroup = document.createElement('div');
-    delGroup.classList.add('delivery-group');
-    ['Pick Up','Can Deliver'].forEach(opt => {
-      const label = document.createElement('label');
-      label.innerHTML = `<input type="checkbox" data-category="${opt}"> ${opt}`;
-      label.querySelector('input').addEventListener('change', () => {
-        this.toggleDynamicTag(opt, label.querySelector('input').checked);
-        this.renderProductsGrid();
-      });
-      delGroup.appendChild(label);
-    });
-    sidebar.appendChild(delGroup);
-
-    flexContainer.appendChild(sidebar);
+    this._renderCheckboxGroup(
+      sidebar,
+      'Delivery',
+      ['Pick Up', 'Drop Off To You'],
+      (opt) => {
+        this._toggleFilter('deliveries', opt);
+        this._renderGrid();
+      }
+    );
 
     const main = document.createElement('div');
     main.classList.add('main-content');
+    flex.appendChild(main);
 
     const topBar = document.createElement('div');
     topBar.classList.add('top-bar');
-    this.searchBar = document.createElement('input');
-    this.searchBar.type = 'text';
-    this.searchBar.placeholder = 'Search';
-    this.searchBar.addEventListener('input', () => {
-      this.currentSearch = this.searchBar.value.toLowerCase();
-      this.renderProductsGrid();
-    });
-    topBar.appendChild(this.searchBar);
-
-    const toggleGroup = document.createElement('div');
-    toggleGroup.classList.add('tag-toggle-group');
-    ['New','Price ascending','Price descending']
-      .forEach(opt => {
-        const btn = document.createElement('button');
-        btn.textContent = opt;
-        if (opt === this.currentSort) btn.classList.add('active');
-        btn.addEventListener('click', () => {
-          this.currentSort = opt;
-          toggleGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          this.renderProductsGrid();
-        });
-        toggleGroup.appendChild(btn);
-      });
-    topBar.appendChild(toggleGroup);
-
     main.appendChild(topBar);
+
+    this.searchInput = Object.assign(document.createElement('input'), {
+      type: 'text',
+      placeholder: 'Search items…',
+    });
+    this.searchInput.classList.add('search-bar');
+    this.searchInput.addEventListener('input', (e) => {
+      this.state.search = e.target.value.toLowerCase();
+      this._renderGrid();
+    });
+    topBar.appendChild(this.searchInput);
+
+    this._renderSortButtons(topBar);
 
     this.productsGrid = document.createElement('div');
     this.productsGrid.classList.add('products-grid');
     main.appendChild(this.productsGrid);
 
-    flexContainer.appendChild(main);
-    container.appendChild(flexContainer);
+    this._loadProducts();
 
-    this.loadProducts();
-
-    return container;
+    return this.element;
   }
 
-  async loadProducts() {
+  async _loadProducts() {
     try {
       const res = await fetch('/v1/tasks');
-      if (!res.ok) throw new Error('Failed to fetch products');
       const { tasks } = await res.json();
+      this.products = tasks.filter((t) => t.listed !== false);
 
-      this.products = tasks
-        .filter(t => t.listed === true)
-        .map(p => ({
-          title: p.name,
-          price: p.cost,
-          postingDate: p.postingDate || new Date().toISOString().split('T')[0],
-          tag: p.tag,
-          delivery: p.delivery,
-          image: p.image
-        }));
+      const prices = this.products.map((p) =>
+        parseFloat((p.cost || '').replace(/^\$/, '')) || 0
+      );
+      this.state.maxCost = prices.length ? Math.max(...prices) : 0;
+      this.costSlider.max = this.state.maxCost;
+      this.costSlider.value = this.state.maxCost;
+      this._updateCostDisplay();
 
-      const maxPrice = this.products.length
-        ? Math.max(...this.products.map(x => parseFloat(x.price.slice(1))))
-        : 0;
-      this.slider.min = '0';
-      this.slider.max = String(maxPrice);
-      this.slider.value = String(maxPrice);
-      this.currentCostFilter = maxPrice;
-      this.costDisplay.textContent = `$0 - $${maxPrice}`;
-
-      this.renderProductsGrid();
+      this._renderGrid();
     } catch (err) {
       console.error(err);
-      this.productsGrid.innerHTML = '<p>Error loading products.</p>';
+      this.productsGrid.innerHTML = `<p class="error">Failed to load items.</p>`;
     }
   }
 
-  renderProductsGrid() {
-    this.productsGrid.innerHTML = '';
-    if (!this.products.length) {
-      this.productsGrid.innerHTML = '<p>No items available for purchase.</p>';
-      return;
-    }
+  _renderCheckboxGroup(root, label, opts, onChange) {
+    const wrap = document.createElement('div');
+    wrap.classList.add('checkbox-group');
+    wrap.innerHTML = `<p><strong>${label}</strong></p>`;
 
-    const checkedCats = Array.from(document.querySelectorAll('.checkbox-group input:checked'))
-      .map(cb => cb.dataset.category);
-    const checkedDels = Array.from(document.querySelectorAll('.delivery-group input:checked'))
-      .map(cb => cb.dataset.category);
-
-    let filtered = this.products.filter(p => {
-      const price = parseFloat(p.price.slice(1));
-      const matchesCost = price <= this.currentCostFilter;
-      const matchesSearch = !this.currentSearch
-        || p.title.toLowerCase().includes(this.currentSearch);
-      const catOk = !checkedCats.length || checkedCats.includes(p.tag);
-      const delOk = !checkedDels.length || checkedDels.includes(p.delivery);
-      return matchesCost && matchesSearch && catOk && delOk;
+    opts.forEach((opt) => {
+      const lbl = document.createElement('label');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.dataset.category = opt;
+      cb.addEventListener('change', () => {
+        this._toggleDynamicTag(opt, cb.checked);
+        onChange(opt);
+      });
+      lbl.append(cb, document.createTextNode(' ' + opt));
+      wrap.appendChild(lbl);
     });
 
-    if (this.currentSort === 'New') {
-      filtered.sort((a,b) => new Date(b.postingDate) - new Date(a.postingDate));
-    } else if (this.currentSort === 'Price ascending') {
-      filtered.sort((a,b) => parseFloat(a.price.slice(1)) - parseFloat(b.price.slice(1)));
+    root.appendChild(wrap);
+  }
+
+  _renderCostSlider(root) {
+    const lbl = Object.assign(document.createElement('label'), {
+      htmlFor: 'cost-slider',
+      innerHTML: '<strong>Max Cost</strong>',
+    });
+    this.costSlider = document.createElement('input');
+    this.costSlider.type = 'range';
+    this.costSlider.id = 'cost-slider';
+    this.costSlider.min = 0;
+    this.costSlider.addEventListener('input', () => {
+      this.state.maxCost = +this.costSlider.value;
+      this._updateCostDisplay();
+      this._renderGrid();
+    });
+
+    this.costDisplay = document.createElement('p');
+    this.costDisplay.classList.add('cost-range');
+
+    root.append(lbl, this.costSlider, this.costDisplay);
+    this._updateCostDisplay();
+  }
+
+  _renderSortButtons(root) {
+    const grp = document.createElement('div');
+    grp.classList.add('tag-toggle-group');
+
+    ['New', 'Price ascending', 'Price descending'].forEach((opt) => {
+      const btn = document.createElement('button');
+      btn.classList.add('toggle');
+      btn.textContent = opt;
+      if (opt === this.state.sort) btn.classList.add('active');
+      btn.addEventListener('click', () => {
+        this.state.sort = opt;
+        grp.querySelectorAll('button').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        this._renderGrid();
+      });
+      grp.appendChild(btn);
+    });
+
+    root.appendChild(grp);
+  }
+
+  _toggleFilter(key, val) {
+    const set = this.state[key];
+    set.has(val) ? set.delete(val) : set.add(val);
+  }
+
+  _toggleDynamicTag(cat, checked) {
+    if (checked && !this.dynamicTags.has(cat)) {
+      const tag = document.createElement('span');
+      tag.classList.add('tag');
+      tag.textContent = cat;
+
+      const x = document.createElement('span');
+      x.classList.add('remove-tag');
+      x.textContent = '×';
+      x.addEventListener('click', () => {
+        this.element
+          .querySelectorAll(`input[data-category="${cat}"]`)
+          .forEach((cb) => {
+            cb.checked = false;
+            cb.dispatchEvent(new Event('change'));
+          });
+      });
+
+      tag.appendChild(x);
+      this.dynamicTags.set(cat, tag);
+      this.tagsDiv.appendChild(tag);
+    } else if (!checked) {
+      const t = this.dynamicTags.get(cat);
+      if (t) {
+        t.remove();
+        this.dynamicTags.delete(cat);
+      }
+    }
+  }
+
+  _updateCostDisplay() {
+    this.costDisplay.textContent = `$0 – $${this.state.maxCost}`;
+  }
+
+  _showNotification(msg) {
+    this.notificationDiv.textContent = msg;
+    this.notificationDiv.style.display = 'block';
+    setTimeout(() => (this.notificationDiv.style.display = 'none'), 3000);
+  }
+
+  _renderGrid() {
+    this.productsGrid.innerHTML = '';
+    const { categories, deliveries, maxCost, search, sort } = this.state;
+    const user = localStorage.getItem('currentUser');
+
+    let items = this.products.filter((p) => {
+      const costVal = parseFloat((p.cost || '').replace(/^\$/, '')) || 0;
+      const title = ((p.name ?? p.heading) || '').toLowerCase();
+      return (
+        costVal <= maxCost &&
+        title.includes(search) &&
+        (!categories.size || categories.has(p.tag)) &&
+        (!deliveries.size || deliveries.has(p.delivery))
+      );
+    });
+
+    if (sort === 'New') {
+      items.sort((a, b) => new Date(b.postingDate) - new Date(a.postingDate));
+    } else if (sort.includes('ascending')) {
+      items.sort(
+        (a, b) =>
+          parseFloat(a.cost.replace(/^\$/, '')) -
+          parseFloat(b.cost.replace(/^\$/, ''))
+      );
     } else {
-      filtered.sort((a,b) => parseFloat(b.price.slice(1)) - parseFloat(a.price.slice(1)));
+      items.sort(
+        (a, b) =>
+          parseFloat(b.cost.replace(/^\$/, '')) -
+          parseFloat(a.cost.replace(/^\$/, ''))
+      );
     }
 
-    filtered.forEach(p => {
+    items.forEach((prod) => {
       const card = document.createElement('div');
       card.classList.add('product-card');
-
-      const imgDiv = document.createElement('div');
-      imgDiv.classList.add('product-image');
-      const img = document.createElement('img');
-      img.src = p.image;
-      img.alt = p.title;
-      imgDiv.appendChild(img);
-      card.appendChild(imgDiv);
-
-      const h4 = document.createElement('h4');
-      h4.textContent = p.title;
-      card.appendChild(h4);
-
-      const priceP = document.createElement('p');
-      priceP.textContent = p.price;
-      card.appendChild(priceP);
-
+      card.style.cursor = 'pointer';
+      card.innerHTML = `
+        <div class="product-image">
+          <img src="${prod.image}" alt="${prod.name ?? prod.heading}">
+        </div>
+        <h4>${prod.name ?? prod.heading}</h4>
+        <p>${prod.cost}</p>
+      `;
+      card.addEventListener('click', () => {
+        if (!user) {
+          this._showNotification('Please log in to purchase items.');
+          return;
+        }
+        this._showPurchaseModal(prod);
+      });
       this.productsGrid.appendChild(card);
     });
   }
 
-  toggleDynamicTag(category, checked) {
-    if (checked) this.addDynamicTag(category);
-    else this.removeDynamicTag(category);
-  }
+  _showPurchaseModal(prod) {
+    document.body.querySelectorAll('.confirmation-overlay').forEach((el) => el.remove());
 
-  addDynamicTag(category) {
-    if (this.dynamicTags.has(category)) return;
-    const tag = document.createElement('span');
-    tag.classList.add('tag');
-    tag.textContent = category;
-    const removeBtn = document.createElement('span');
-    removeBtn.classList.add('remove-tag');
-    removeBtn.textContent = ' ×';
-    tag.appendChild(removeBtn);
-    this.dynamicTags.set(category, tag);
-    this.tagsDiv.appendChild(tag);
-    tag.addEventListener('click', () => {
-      this.toggleCheckbox(category, false);
-      this.removeDynamicTag(category);
-      this.renderProductsGrid();
+    const overlay = document.createElement('div');
+    overlay.classList.add('confirmation-overlay');
+
+    const box = document.createElement('div');
+    box.classList.add('confirmation-box');
+    box.innerHTML = `
+      <h3>Confirm Purchase</h3>
+      <p><strong>Item:</strong> ${prod.name ?? prod.heading}</p>
+      <p><strong>Total Cost:</strong> ${prod.cost}</p>
+    `;
+
+    const btns = document.createElement('div');
+    btns.classList.add('confirm-buttons');
+
+    const cancel = document.createElement('button');
+    cancel.classList.add('btn', 'btn-neutral');
+    cancel.textContent = 'Cancel';
+    cancel.addEventListener('click', () => overlay.remove());
+
+    const confirm = document.createElement('button');
+    confirm.classList.add('btn', 'btn-primary');
+    confirm.textContent = 'Confirm';
+    confirm.addEventListener('click', async () => {
+      await fetch(`/v1/tasks/${prod.id}`, { method: 'DELETE' });
+      overlay.remove();
+      window.location.hash = '#user';
     });
-  }
 
-  removeDynamicTag(category) {
-    const tag = this.dynamicTags.get(category);
-    if (tag) {
-      tag.remove();
-      this.dynamicTags.delete(category);
-    }
-  }
-
-  toggleCheckbox(category, value) {
-    document
-      .querySelectorAll(`input[data-category="${category}"]`)
-      .forEach(cb => {
-        cb.checked = value;
-        cb.dispatchEvent(new Event('change'));
-      });
+    btns.append(cancel, confirm);
+    box.appendChild(btns);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
   }
 }

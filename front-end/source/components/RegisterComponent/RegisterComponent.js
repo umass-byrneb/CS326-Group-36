@@ -5,16 +5,23 @@ export class RegisterComponent extends BaseComponent {
     super();
     this.loadCSS('RegisterComponent');
   }
+
   render() {
     const container = document.createElement('section');
     container.classList.add('register-page');
+
+    this.notificationDiv = document.createElement('div');
+    this.notificationDiv.classList.add('notification');
+    this.notificationDiv.style.display = 'none';
+    container.appendChild(this.notificationDiv);
+
     const box = document.createElement('div');
     box.classList.add('register-container');
+
     const h1 = document.createElement('h1');
     h1.textContent = 'Register';
     box.appendChild(h1);
 
-    // Form
     const form = document.createElement('form');
     form.id = 'register-form';
 
@@ -29,16 +36,32 @@ export class RegisterComponent extends BaseComponent {
     };
 
     const fullnameInput = Object.assign(document.createElement('input'), {
-      type: 'text', id: 'fullname', name: 'fullname', placeholder: 'Enter your full name'
+      type: 'text',
+      id: 'fullname',
+      name: 'fullname',
+      placeholder: 'Enter your full name',
+      required: true
     });
     const emailInput = Object.assign(document.createElement('input'), {
-      type: 'email', id: 'email', name: 'email', placeholder: 'Enter your email'
+      type: 'email',
+      id: 'email',
+      name: 'email',
+      placeholder: 'Enter your email',
+      required: true
     });
     const passwordInput = Object.assign(document.createElement('input'), {
-      type: 'password', id: 'password', name: 'password', placeholder: 'Enter a password'
+      type: 'password',
+      id: 'password',
+      name: 'password',
+      placeholder: 'Enter a password',
+      required: true
     });
     const confirmInput = Object.assign(document.createElement('input'), {
-      type: 'password', id: 'confirm', name: 'confirm', placeholder: 'Confirm password'
+      type: 'password',
+      id: 'confirm',
+      name: 'confirm',
+      placeholder: 'Confirm password',
+      required: true
     });
 
     form.append(
@@ -60,35 +83,56 @@ export class RegisterComponent extends BaseComponent {
     loginLink.href = '#login';
     loginLink.textContent = 'Already have an account? Sign In';
     linksDiv.appendChild(loginLink);
+
     box.append(form, linksDiv);
     container.appendChild(box);
 
+    [fullnameInput, emailInput, passwordInput, confirmInput].forEach(input =>
+      input.addEventListener('input', () => {
+        this.notificationDiv.style.display = 'none';
+        this.notificationDiv.textContent = '';
+      })
+    );
+
     signUpBtn.addEventListener('click', async () => {
       const full = fullnameInput.value.trim();
-      const em = emailInput.value.trim();
-      const pw = passwordInput.value;
-      const cpw = confirmInput.value;
+      const em   = emailInput.value.trim();
+      const pw   = passwordInput.value;
+      const cpw  = confirmInput.value;
+
       if (!full || !em || !pw) {
-        alert('Please fill out all fields.');
+        this.notificationDiv.textContent = 'Please fill out all fields.';
+        this.notificationDiv.style.display = 'block';
         return;
       }
       if (pw !== cpw) {
-        alert('Passwords do not match.');
+        this.notificationDiv.textContent = 'Passwords do not match.';
+        this.notificationDiv.style.display = 'block';
         return;
       }
+
       try {
         const res = await fetch('/v1/users/register', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {'Content-Type':'application/json'},
           body: JSON.stringify({ fullname: full, email: em, password: pw })
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Register failed');
-        alert('Registration successful! Please log in.');
+        if (!res.ok) {
+          throw new Error(data.error || 'Registration failed');
+        }
+
+        this.notificationDiv.textContent = 'Registration successful! Redirecting to login…';
+        this.notificationDiv.style.display = 'block';
         form.reset();
-        window.location.hash = '#login';
+        setTimeout(() => {
+          this.notificationDiv.style.display = 'none';
+          window.location.hash = '#login';
+        }, 2000);
+
       } catch (err) {
-        alert(err.message);
+        this.notificationDiv.textContent = err.message;
+        this.notificationDiv.style.display = 'block';
       }
     });
 

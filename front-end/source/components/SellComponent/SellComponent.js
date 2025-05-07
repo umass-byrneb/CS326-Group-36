@@ -21,6 +21,11 @@ export class SellComponent extends BaseComponent {
       return msgSection;
     }
 
+    this.notificationOverlay = document.createElement('div');
+    this.notificationOverlay.classList.add('confirmation-overlay');
+    this.notificationOverlay.style.display = 'none';
+    document.body.appendChild(this.notificationOverlay);
+
     const container = document.createElement('section');
     container.classList.add('sell-page');
 
@@ -429,11 +434,11 @@ export class SellComponent extends BaseComponent {
         <img class="preview-image" src="${imgElement.src}" alt="Preview">
       </div>
       <h2>${name || 'No name'}</h2>
-      <p><strong>Tag:</strong> ${tag || '—'}</p>
-      <p><strong>Cost:</strong> ${cost || '—'}</p>
-      <p><strong>Contact:</strong> ${contact || '—'}</p>
-      <p><strong>Delivery:</strong> ${delivery || '—'}</p>
-      <p>${description || ''}</p>
+      <p><strong>Tag:</strong> ${tag}</p>
+      <p><strong>Cost:</strong> ${cost}</p>
+      <p><strong>Contact:</strong> ${contact}</p>
+      <p><strong>Delivery:</strong> ${delivery}</p>
+      <p>${description}</p>
     `;
   }
 

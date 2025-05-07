@@ -1,12 +1,25 @@
 # College Clutter-Group 36
 ## Table of Contents
+- [How to Run](#How-to-Run)
 - [Project Description](#Project-Description)
 - [Team Members](#Team-Members)
 - [Milestone #2](https://github.com/umass-byrneb/CS326-Group-36/blob/main/docs/milestone_2/Milestone2_Group36.pdf)
 - [Milestone #3](https://github.com/umass-byrneb/CS326-Group-36/blob/main/docs/milestone_2/Milestone2_Group36.pdf)
 - [Milestone #4](https://github.com/umass-byrneb/CS326-Group-36/blob/main/docs/milestone_4/Milestone4_Group36.pdf)
 - [Milestone #5](https://github.com/umass-byrneb/CS326-Group-36/blob/main/docs/milestone_5/Milestone5_Group36.pdf)
-  
+- [Milestone #6](https://github.com/umass-byrneb/CS326-Group-36/blob/main/docs/milestone_6/Milestone6_Group36.pdf)
+## How to Run
+git clone https://github.com/umass-byrneb/CS326-Group-36.git  
+cd CS326-Group-36  
+npm i   
+npm run start
+
+**Alternatively**  
+npm run dev  
+--API(Express +SQLite) http://localhost:3000  
+--Front End http://localhost:5000  
+--Register & log in, add/list items, use storage, ENJOY!
+
 ## Project Description 
 **Problem:** Every year students buy new furniture every year to offset costs of storage and leading to tons of waste at the end of every semester.\
 **Solution:** CollegeClutter is a website designed to connect students to other students and local storage facilities to collectively create optimal storage/selling opportunities.\
