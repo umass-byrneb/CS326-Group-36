@@ -1,5 +1,6 @@
+//milestone 6
+
 import Service from "./Service.js";
-// import { fetch } from "../utility/fetch.js"
 import { Events } from "../eventhub/Events.js"
 import { EventHub } from "../eventhub/EventHub.js";
 

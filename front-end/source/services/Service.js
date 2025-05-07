@@ -1,3 +1,5 @@
+//milestone 6
+
 import { EventHub } from '../eventhub/EventHub.js';
 
 export default class Service {

@@ -1,3 +1,5 @@
+//milestone 6
+
 export const listings = [{
   "title": "Temporary storage in friend's garage",
   "duration": "March - June",
