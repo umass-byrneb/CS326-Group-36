@@ -240,16 +240,14 @@ export class SellComponent extends BaseComponent {
         try {
           const res = await fetch('/v1/tasks', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {'Content-Type':'application/json'},
             body: JSON.stringify(payload)
           });
-          if (!res.ok) throw new Error('Save failed');
+          if (!res.ok) throw new Error();
           await res.json();
-          alert('Item saved successfully! You can list it for sale from your dashboard.');
-          window.location.hash = '#user';
-        } catch (err) {
-          console.error(err);
-          alert('Unable to save item. Please try again.');
+          this._showSuccessModal();
+        } catch {
+          this._showErrorModal('Unable to save item. Please try again.');
         }
       });
     })
@@ -459,5 +457,52 @@ export class SellComponent extends BaseComponent {
       <p><strong>Contact: </strong> ${contact || '—'}</p>
       <p>${description || ''}</p>
     `;
+  }
+
+  _showSuccessModal() {
+    document.body.querySelectorAll('.confirmation-overlay').forEach(el => el.remove());
+    const overlay = document.createElement('div');
+    overlay.classList.add('confirmation-overlay');
+    const box = document.createElement('div');
+    box.classList.add('confirmation-box');
+    box.innerHTML = `
+      <h3>Item Saved!</h3>
+      <p>Your item has been saved. You can list it for sale from your dashboard.</p>
+    `;
+    const btns = document.createElement('div');
+    btns.classList.add('confirm-buttons');
+    const ok = document.createElement('button');
+    ok.classList.add('btn','btn-primary');
+    ok.textContent = 'OK';
+    ok.addEventListener('click', () => {
+      overlay.remove();
+      window.location.hash = '#user';
+    });
+    btns.appendChild(ok);
+    box.appendChild(btns);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+  }
+
+  _showErrorModal(msg) {
+    document.body.querySelectorAll('.confirmation-overlay').forEach(el => el.remove());
+    const overlay = document.createElement('div');
+    overlay.classList.add('confirmation-overlay');
+    const box = document.createElement('div');
+    box.classList.add('confirmation-box');
+    box.innerHTML = `
+      <h3>Error</h3>
+      <p>${msg}</p>
+    `;
+    const btns = document.createElement('div');
+    btns.classList.add('confirm-buttons');
+    const ok = document.createElement('button');
+    ok.classList.add('btn','btn-neutral');
+    ok.textContent = 'OK';
+    ok.addEventListener('click', () => overlay.remove());
+    btns.appendChild(ok);
+    box.appendChild(btns);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
   }
 }
