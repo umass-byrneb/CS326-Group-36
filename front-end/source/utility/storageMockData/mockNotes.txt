@@ -1,0 +1,13 @@
+
+//milestone 6
+
+Data generated using Mockaroo.com
+
+one of the prompts for description:
+Description of storage spaces for sale. limit this to college scenarios and for college students. An example would be that "I'm leaving for an internship during the summer and am offering storage space in my room for that duration"
+
+title prompt:
+a shorter description of the storage space available. Ex would be summer storage in my home.  limit the scenarios to college students
+
+cost prompt:
+cost per month for renting storage place. keep in mind that these are not big places as they are meant for college students. use upto two decimal places if needed.

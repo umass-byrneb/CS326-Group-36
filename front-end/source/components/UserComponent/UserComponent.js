@@ -1,4 +1,7 @@
 import { BaseComponent } from '../BaseComponent/BaseComponent.js';
+import { EventHub } from '../../eventhub/EventHub.js';
+import { Events } from '../../eventhub/Events.js';
+
 
 export class UserComponent extends BaseComponent {
   constructor() {
@@ -53,21 +56,48 @@ export class UserComponent extends BaseComponent {
     this.errorDiv.classList.add('user-error');
     this.container.appendChild(this.errorDiv);
 
-    this.list = document.createElement('div');
-    this.list.classList.add('items-list');
-    this.container.appendChild(this.list);
-
     this.btnList   = this._createButton('List Selected Items',   'btn-neutral', () => this._bulkUpdate(true));
     this.btnDelete = this._createButton('Delete Selected Items', 'btn-neutral',  () => this._bulkDelete());
     this.btnStore  = this._createButton('Store Selected Items',  'btn-neutral', () => this._storeItems());
     [this.btnList, this.btnDelete, this.btnStore].forEach(b => b.disabled = true);
 
-    const actions = document.createElement('div');
-    actions.classList.add('user-actions');
-    actions.append(this.btnList, this.btnDelete, this.btnStore);
-    this.container.appendChild(actions);
+    this.actions = document.createElement('div');
+    this.actions.classList.add('user-actions');
 
-    this._loadItems(user.email);
+    this.saleHeaderContainer = document.createElement('div');
+    this.saleHeaderContainer.classList.add('sale-header');
+    
+    this.saleItemsBtn = this._createButton('Your Items', 'sale-item-btn', (b) => {
+      const headerBtns = document.querySelectorAll('.sale-item-btn');
+      headerBtns.forEach(btn => btn.classList.remove('sale-item-btn-clicked'));
+      b.target.classList.add('sale-item-btn-clicked');
+      this._addUserActions([this.btnList, this.btnDelete, this.btnStore]);
+      this._loadItems(user.email, '/v1/tasks', 'item');
+    });
+    this.saleItemsBtn.classList.add('sale-item-btn');
+    this.saleHeaderContainer.appendChild(this.saleItemsBtn);
+
+    this.saleStorageBtn = this._createButton('Your Storage Items', 'sale-item-btn', (b) => {
+      const headerBtns = document.querySelectorAll('.sale-item-btn');
+      headerBtns.forEach(btn => btn.classList.remove('sale-item-btn-clicked'));
+      b.target.classList.add('sale-item-btn-clicked');
+      this._addUserActions([this.btnList, this.btnDelete]);
+      this._loadItems(user.email, "/v1/storage/listings", 'storage');
+    });
+    this.saleStorageBtn.classList.add('sale-item-btn');
+    this.saleHeaderContainer.appendChild(this.saleStorageBtn);
+
+    this.container.appendChild(this.saleHeaderContainer);
+
+    this.list = document.createElement('div');
+    this.list.classList.add('items-list');
+    this.container.appendChild(this.list);
+
+    
+    // actions.append(this.btnList, this.btnDelete, this.btnStore);
+    // this.container.appendChild(actions);
+
+    this.saleItemsBtn.click();
 
     return this.container;
   }
@@ -80,17 +110,33 @@ export class UserComponent extends BaseComponent {
     return btn;
   }
 
-  async _loadItems(ownerEmail) {
+  _addUserActions(btnArr) {
+    this.actions.innerHTML = '';
+    btnArr.forEach(btn => this.actions.append(btn));
+    this.container.appendChild(this.actions);
+  }
+
+
+  async _loadItems(ownerEmail, path, type) {
+    console.log("in load items");
     this.list.innerHTML = '';
     this._clearError();
     try {
-      const resp = await fetch('/v1/tasks');
-      const { tasks } = await resp.json();
-      this.items = tasks.filter(t => t.owner === ownerEmail);
+      const resp = await fetch(path);
+      console.log("response received in load items: ", resp);
+      const result = await resp.json();
+      const itemsArr = type == 'storage' ? result.listings : result.tasks;
+      console.log("items array: ", itemsArr);
+
+      this.items = [];
+      this.items = itemsArr.filter(t => t.owner === ownerEmail);
       if (this.items.length === 0) {
         this.list.innerHTML = `<p>No items found. Please post a product.</p>`;
       } else {
-        this.items.forEach(item => this._renderItemRow(item));
+        this.items.forEach(item => {
+          if (type  == 'storage') this._renderStorageItemRow(item);
+          if (type == 'item') this._renderItemRow(item);
+        });
       }
     } catch {
       this._showError('Error loading items.');
@@ -131,6 +177,41 @@ export class UserComponent extends BaseComponent {
     this.list.appendChild(row);
   }
 
+  _renderStorageItemRow(item) {
+    console.log("render storage item: ", item);
+    const row = document.createElement('div');
+    row.classList.add('item-row');
+    row.dataset.id = item.id;
+
+    const img = document.createElement('img');
+    img.src = item.image;
+    img.alt = item.title;
+    img.classList.add('item-image');
+    row.appendChild(img);
+
+    const details = document.createElement('div');
+    details.classList.add('item-details');
+    details.innerHTML = `
+      <h2>${item.title}</h2>
+      <p>Description: ${item.description}</p>
+      <p>Cost: $${item.cost}</p>
+      <p>Size: ${item.size} sq ft</p>
+      <p>Duration: ${item.duration}</p>
+      <p>Listed: ${item.listed ? 'Yes' : 'No'}</p>
+    `;
+    row.appendChild(details);
+
+    const cbContainer = document.createElement('div');
+    cbContainer.classList.add('item-checkbox');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.addEventListener('change', () => this._updateActionButtons());
+    cbContainer.appendChild(checkbox);
+    row.appendChild(cbContainer);
+
+    this.list.appendChild(row);
+  }
+
   _getSelectedIds() {
     return Array.from(this.list.querySelectorAll('.item-row'))
       .filter(r => r.querySelector('input').checked)
@@ -139,13 +220,14 @@ export class UserComponent extends BaseComponent {
 
   _updateActionButtons() {
     const has = this._getSelectedIds().length > 0;
-    this.btnList.disabled   = !has;
-    this.btnDelete.disabled = !has;
-    this.btnStore.disabled  = !has;
+    [...this.actions.children].forEach(btn => btn.disabled = !has);
     this._clearError();
   }
 
   async _bulkUpdate(listed) {
+    const selected = document.querySelector('.sale-item-btn-clicked');
+    let path = selected.textContent == 'Your Items' ? "/v1/tasks/" : "/v1/storage/listings/";
+    const storage = path == "/v1/tasks/" ? false : true;
     this._clearError();
     const ids = this._getSelectedIds();
     if (!ids.length) {
@@ -153,20 +235,25 @@ export class UserComponent extends BaseComponent {
       return;
     }
     try {
-      await Promise.all(ids.map(id =>
-        fetch(`/v1/tasks/${id}`, {
+      await Promise.all(ids.map(id => {
+        path = path + String(id);
+        fetch(path, {
           method: 'PUT',
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify({ listed })
-        })
-      ));
-      window.location.hash = listed ? '#buy' : '#user';
+        });
+        if (storage) EventHub.getInstance().publish(Events.UpdateStorageItemSuccess);
+      }));
+      window.location.hash = listed ? (storage ? '#storage' : '#buy') : '#user';
     } catch {
       this._showError('Failed to update items.');
     }
   }
 
   async _bulkDelete() {
+    const selected = document.querySelector('.sale-item-btn-clicked');
+    const pathStr = selected.textContent == 'Your Items' ? "/v1/tasks" : "/v1/storage/listings";
+    const storage = pathStr == "/v1/tasks/" ? false : true;
     this._clearError();
     const ids = this._getSelectedIds();
     if (!ids.length) {
@@ -174,11 +261,14 @@ export class UserComponent extends BaseComponent {
       return;
     }
     try {
-      await Promise.all(ids.map(id =>
-        fetch(`/v1/tasks/${id}`, { method: 'DELETE' })
-      ));
+      await Promise.all(ids.map(id => {
+        let path = `${pathStr}/${id}`;
+        console.log("path: :", path);
+        fetch(path, { method: 'DELETE' });
+        if (storage) EventHub.getInstance().publish(Events.RemoveStorageItemSuccess);
+      }));
       const user = JSON.parse(localStorage.getItem('currentUser'));
-      this._loadItems(user.email);
+      this._loadItems(user.email, pathStr, storage ? "storage" : "item");
     } catch {
       this._showError('Failed to delete items.');
     }

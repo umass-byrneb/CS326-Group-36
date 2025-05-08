@@ -47,4 +47,20 @@ const Task = sequelize.define('Task', {
   timestamps: false
 });
 
-export { sequelize, User, Task };
+const Storage = sequelize.define('Storage', {
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  title: {type: DataTypes.STRING, allowNull: false},
+  duration: {type: DataTypes.STRING, allowNull: false},
+  cost: {type: DataTypes.FLOAT, allowNull: true},
+  size: {type: DataTypes.FLOAT, allowNull: false},
+  contact: {type: DataTypes.STRING, allowNull: true},
+  description: {type: DataTypes.STRING, allowNull: true},
+  image: {type: DataTypes.TEXT, allowNull: false},
+  owner: {type: DataTypes.STRING, allowNull: false},
+  listed: {type: DataTypes.BOOLEAN, defaultValue: false}
+}, {
+  tableName: 'storage',
+  timestamps: true,
+})
+
+export { sequelize, User, Task, Storage };

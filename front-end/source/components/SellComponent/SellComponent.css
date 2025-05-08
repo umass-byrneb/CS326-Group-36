@@ -10,10 +10,28 @@
 }
 
 .sell-image-container {
-  flex: 1;
+  /* flex: 1; */
   display: flex;
+  flex: 0.8;
   justify-content: center;
   align-items: center;
+}
+
+.sell-post {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-right: 2rem;
+  margin-left: 2rem;
+}
+
+.button-container .button {
+  background-color: #D58936;
+  border: 1px solid #D58936;
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition: 0.2s;
 }
 
 .sell-image {

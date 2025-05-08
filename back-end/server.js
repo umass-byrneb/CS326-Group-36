@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { sequelize } from './models/index.js';
 import taskRoutes from './routes/taskRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import storageRoutes from './routes/storageRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(express.json({ limit: '10mb' }));
 
 app.use('/v1',       taskRoutes);
 app.use('/v1/users', userRoutes);
+app.use('/v1/storage', storageRoutes);
 
 app.use(errorHandler);
 

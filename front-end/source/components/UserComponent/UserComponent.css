@@ -39,7 +39,7 @@
   }
   
   .item-details h2 {
-    margin-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
     font-size: 1.25rem;
   }
   
@@ -82,4 +82,25 @@
   .btn-danger:hover {
     background-color: #c9302c;
   }
-  
+  .sale-header {
+    display: flex;
+    gap: 0em;
+    margin-bottom: 1em;
+  }
+  .sale-item-btn {
+    background-color: #ffffff;
+    border: 1px solid #ffffff;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    transition: 0.2s;
+    text-align: center;
+    font-size: 80%;
+    font-weight: bold;
+  }
+  .sale-item-btn:hover {
+    background-color: #c1c0c0;
+  }
+  .sale-item-btn-clicked {
+    background-color: #D58936;
+    border: 1px solid #D58936;
+  }
