@@ -319,13 +319,6 @@ export class SellComponent extends BaseComponent {
       contactSelect.required = true;
       contactSelect.placeholder = 'Enter email or phone number';
       contactSelect.rows = 1;
-      // ['Select Contact','Only Text Message','Only Phone Number','Both']
-      //   .forEach(opt => {
-      //     const o = document.createElement('option');
-      //     o.textContent = opt;
-      //     if (opt === 'Select Contact') { o.disabled = true; o.selected = true; }
-      //     contactSelect.appendChild(o);
-      //   });
       details.appendChild(this.makeField('Contact: ', contactSelect));
   
       const descInput = document.createElement('textarea');
@@ -393,7 +386,6 @@ export class SellComponent extends BaseComponent {
           const hub = EventHub.getInstance();
           hub.subscribe(Events.AddStorageItemSuccess, (item) => {
             if (typeof(item) == "String") throw new Error('Save failed');
-            console.log("new item after adding to the db: ", item)
             alert('Item saved successfully! You can list it for sale from your dashboard.');
             window.location.hash = '#user';
           })
@@ -417,11 +409,6 @@ export class SellComponent extends BaseComponent {
     wrapper.append(label, input);
     return wrapper;
   };
-
-  // sellItemForm() {
-  //   const details = document.getElementsByClassName('sell-details')[0];
-    
-  // }
 
   updateItemPreview(previewContent, imgElement, fields = {}) {
     const {

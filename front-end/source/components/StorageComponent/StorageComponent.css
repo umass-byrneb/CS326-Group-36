@@ -10,12 +10,9 @@
 
 .sidebar {
   flex: 0 0 280px;
-  /* border: 1px solid #44413E; */
   border-radius: 4px;
   padding: 1rem;
-  /* background-color: #44413E;     */
   background-color: #EDE4DA;
-  /* background-color: #262626; */
 }
 
 h3 {
@@ -103,15 +100,12 @@ h3 {
 }
 
 .toggle {
-  /* background-color: #FFBD59;
-  border: 1px solid #FFBD59; */
   background-color: #D58936;
   border: 1px solid #D58936;
   border-radius: 4px;
   padding: 0.5rem 0.75rem;
   cursor: pointer;
   transition: 0.2s;
-  /* color: #403D3A; */
 }
 
 .toggle:hover {
@@ -134,12 +128,8 @@ h3 {
 }
 
 .storage-item {
-  /* border: 1px solid #44413E; */
   border: 2px solid #EDE4DA;
   border-radius: 4px;
-  /* background-color: #44413E; */
-  /* background-color: #EDE4DA; */
-  /* background-color: #262626; */
   padding: 1rem;
   display: flex;
   flex-wrap: wrap;
@@ -162,29 +152,55 @@ h3 {
   line-height: 1.4;
 }
 
-/* .storage-image {
-  flex: 0 0 150px;
-  height: 100px;
-  background-color: #e0e0e0;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-.storage-image .img {
-  width: 80%;
-  height: 80%;
-} */
-
 .storage-image {
-  width: 100%;          /* or set a fixed width like 200px */
-  max-width: 300px;     /* optional limit */
+  width: 100%;        
+  max-width: 300px;     
   height: auto;
-  overflow: hidden;     /* hide anything that spills out */
-  border: 1px solid #ccc; /* optional for visibility */
+  overflow: hidden;     
+  border: 1px solid #ccc; 
 }
 
 .storage-image img {
-  width: 100%;          /* scale image to container width */
-  height: auto;         /* preserve aspect ratio */
-  object-fit: contain;  /* or 'cover' if you want it to fill the box */
-  display: block;       /* remove default inline spacing */
+  width: 100%;         
+  height: auto;        
+  object-fit: contain;  
+  display: block;       
+}
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-content {
+  background-color: #EDE4DA;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 600px;
+  width: 90%;
+}
+
+.modal-image {
+  width: 100%;          
+  max-width: 500px;     
+  max-height: 300px;    
+  height: auto;         
+  object-fit: contain;  
+}
+
+.modal-item {
+  margin-bottom: 0.8em;
+}
+
+.modal-button {
+  margin-top: 1em;
+  margin-right: 1em;
 }

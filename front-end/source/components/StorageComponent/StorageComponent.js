@@ -10,11 +10,19 @@ export class StorageComponent extends BaseComponent {
   constructor() {
     super();
     this.loadCSS('StorageComponent');
+    this.state = {
+      sizeRange: [-1, -1],
+    }
   }
 
   render() {
     this.#createContainer();
     this.#flexContainer.appendChild(this.#createSideBar());
+
+    this.modalOverlay = document.createElement('div');
+    this.modalOverlay.classList.add('modal-overlay');
+    this.modalOverlay.style.display = 'none';
+    document.body.appendChild(this.modalOverlay);
 
     //main content 
     const mainContent = document.createElement('main');
@@ -52,45 +60,21 @@ export class StorageComponent extends BaseComponent {
     tagsDiv.classList.add('tags');
     sidebar.appendChild(tagsDiv);
 
-    // //cost slider
-    // const costLabel = document.createElement('label');
-    // costLabel.setAttribute('for', 'cost-slider');
-    // costLabel.innerHTML = '<strong>Cost: </strong>';
-    // sidebar.appendChild(costLabel);
-
-    // const costValueDisplay = document.createElement('span');
-    // costValueDisplay.classList.add('cost-value');
-    // costValueDisplay.textContent = '100';
-    // costLabel.appendChild(costValueDisplay);
-
-
-    // const costSlider = document.createElement('input');
-    // costSlider.type = 'range';
-    // costSlider.id = 'cost-slider';
-    // costSlider.name = 'cost-slider';
-    // costSlider.min = '0';
-    // costSlider.max = '100';
-    // costSlider.value = '50';
-
-    // Cost filter section
+    //cost slider
     const costSection = document.createElement('div');
     costSection.classList.add('cost-section');
 
-    // Label
     const costLabel = document.createElement('label');
     costLabel.setAttribute('for', 'cost-slider');
     costLabel.innerHTML = '<strong>Cost:</strong>';
     sidebar.appendChild(costLabel);
 
-    // slider with value
     const sliderValueSet = document.createElement('span');
-    // Min/Max labels below slider
     const minLabel = document.createElement('span');
     minLabel.textContent = '$0';
     const maxLabel = document.createElement('span');
     maxLabel.textContent = '$300';
 
-    // Slider element
     const costSlider = document.createElement('input');
     costSlider.type = 'range';
     costSlider.id = 'cost-slider';
@@ -100,7 +84,6 @@ export class StorageComponent extends BaseComponent {
     costSlider.step = 10;
     costSlider.classList.add('cost-slider');
 
-    // Update on slide
     costSlider.addEventListener('input', () => {
       maxLabel.textContent = `$${costSlider.value}`;
       const hub = EventHub.getInstance();
@@ -199,7 +182,6 @@ export class StorageComponent extends BaseComponent {
   }
 
   #createStorageItem(item) {
-    console.log("item to render: ", item);
     const storageItem = document.createElement('div');
     storageItem.classList.add('storage-item');
 
@@ -233,8 +215,12 @@ export class StorageComponent extends BaseComponent {
     img.src = item.image; // Set the image source
     img.alt = item.title || 'Storage image'; // Optional alt text
     imageDiv.appendChild(img);
-    // imageDiv.src = item.image;
     storageItem.appendChild(imageDiv);
+
+    // pop up modal
+    storageItem.addEventListener('click', () => {
+      this.#showModal(item);
+    })
     return storageItem;
   }
 
@@ -267,15 +253,155 @@ export class StorageComponent extends BaseComponent {
 
   #removeTag() {
     const tags = this.#container.querySelectorAll('.tag');
-    console.log("tags: ", tags);
     const tagsList = []
     tags.forEach(tag => tagsList.push(tag.textContent.slice(0, -1)));
-    console.log("tagList: ", tagsList);
     const hub = EventHub.getInstance();
-    // if (tagsList.length == 0) {
-    //   hub.publish(Events.StorageUnfilteredList);
-    // } else hub.publish(Events.StorageFilterRemoveTag, tagsList);
     hub.publish(Events.StorageFilterRemoveTag, tagsList);
+  }
+
+  #showModal(item) {
+    this.modalOverlay.innerHTML = '';
+    const modalContent = document.createElement('div');
+    modalContent.classList.add('modal-content');
+    
+    const modalBody = document.createElement('div');
+    modalBody.classList.add('modal-body');
+    modalBody.innerHTML = `
+      <h2 class='modal-item'>${item.title}</h2>
+      <img src="${item.image}"" class="modal-image modal-item"/>
+      <p><strong>Duration: </strong> ${item.duration}</p>
+      <p><strong>Cost: </strong> $${item.cost}</p>
+      <p><strong>Size: </strong> ${item.size} sq ft</p>
+      <p><strong>Contact: </strong> ${item.contact}</p>
+      <p class='modal-item'><strong>Description: </strong> ${item.description}</p>
+    `;
+    modalContent.appendChild(modalBody);
+
+    // render user's items 
+    const userItems = document.createElement('div');
+    userItems.classList.add('user-items');
+
+    const header = document.createElement('h3');
+    header.textContent = 'Your Items';
+    userItems.appendChild(header);
+
+    const errorContainer = document.createElement('div');
+    errorContainer.classList.add('error-message');
+    errorContainer.textContent = 'You must be logged in to view and store your items.';
+    errorContainer.style.display = 'none';  
+    userItems.appendChild(errorContainer);
+
+    const itemList = document.createElement('div');
+    itemList.classList.add('item-list');
+    userItems.appendChild(itemList)
+
+    const userList = this.#getUserItems();
+    if (userList == null) {
+      // display error div
+      errorContainer.style.display = 'flex';
+    } else {
+      if (userList.length == 0) {
+        itemList.innerHTML = '<p> No items found. </p>'
+      } else {
+        itemList.innerHTML = '';
+        userList.forEach(item  => {
+          const itemRow = this.#renderUserItems(item);
+          itemList.appendChild(itemRow);
+        });
+      }
+    }
+
+    modalBody.appendChild(userItems);
+
+    const modalButtons = document.createElement('span');
+    modalButtons.classList.add('modal-buttons');
+
+    const closeButton = document.createElement('button');
+    closeButton.classList.add('close-modal', 'toggle', 'modal-button');
+    closeButton.textContent = ' Close ';
+    closeButton.addEventListener('click', () => {
+      this.modalOverlay.style.display = 'none';
+    });
+    modalButtons.appendChild(closeButton);
+
+    const storeButton = document.createElement('button');
+    storeButton.classList.add('store-item-modal', 'toggle', 'modal-button');
+    storeButton.textContent = ' Store Selected Item';
+    closeButton.addEventListener('click', () => {
+      const selectedItems = this.#getSelectedIds();
+      selectedItems.forEach(selected => {
+        const itemIndex = storedItems.findIndex(item => item.id === selected.id);
+        if (itemIndex == -1) console.log("item not found");
+        storedItems.splice(itemIndex, 1);
+        localStorage.setItem('toStoreItem', JSON.stringify(storedItems));
+      })
+      this.modalOverlay.style.display = 'none';
+    });
+    modalButtons.appendChild(storeButton);
+
+    modalContent.appendChild(modalButtons)
+    this.modalOverlay.appendChild(modalContent);
+
+    this.modalOverlay.addEventListener('click', (e) => {
+      if (e.target === this.modalOverlay) {
+        this.modalOverlay.style.display = 'none';
+      }
+    });
+    this.modalOverlay.style.display = 'flex';
+  
+  }
+
+  #getUserItems() {
+    const currentUser = localStorage.getItem('currentUser');
+    if (!currentUser) {
+      return null;  // User is not logged in
+    }
+    const toStoreItems = JSON.parse(localStorage.getItem('toStoreItem')) || [];
+    return toStoreItems;
+  }
+
+  #renderUserItems(item) {
+    const row = document.createElement('div');
+    row.classList.add('item-row');
+    row.dataset.id = item.id;
+
+    const img = document.createElement('img');
+    img.src = item.image;
+    img.alt = item.name;
+    img.classList.add('item-image');
+    row.appendChild(img);
+
+    const details = document.createElement('div');
+    details.classList.add('item-details');
+    details.innerHTML = `
+      <h2>${item.name}</h2>
+      <p>${item.description}</p>
+      <p>Cost: ${item.cost}</p>
+      <p>Tag: ${item.tag}</p>
+      <p>Delivery: ${item.delivery}</p>
+      <p>Listed: ${item.listed ? 'Yes' : 'No'}</p>
+    `;
+    row.appendChild(details);
+
+    const cbContainer = document.createElement('div');
+    cbContainer.classList.add('item-checkbox');
+    const checkbox = document.createElement('user-item-input');
+    checkbox.type = 'checkbox';
+    checkbox.addEventListener('change', () => {
+      const has = this.#getSelectedIds().length > 0;
+      // get the store button and change the diasble property to false
+      const storeButton = document.querySelector('.store-item-modal');
+      storeButton.disabled = !has;
+    });
+    cbContainer.appendChild(checkbox);
+    row.appendChild(cbContainer);
+    return row;
+  }
+
+  #getSelectedIds() {
+    return Array.from(this.list.querySelectorAll('.item-row'))
+      .filter(r => r.querySelector('user-item-input').checked)
+      .map(r => Number(r.dataset.id));
   }
 
   #attachEventListeners() {
@@ -284,7 +410,6 @@ export class StorageComponent extends BaseComponent {
 
     //storage listings
     hub.subscribe(Events.LoadStorageSuccess, (items) => {
-      console.log("items for populate listing: ", items);
       this.#populateListing(items)
     });
     hub.publish(Events.LoadStorageListings, 0);
@@ -315,17 +440,43 @@ export class StorageComponent extends BaseComponent {
     //sidebar filters: storage space
     const sizes = this.#container.querySelectorAll('.size-group-input');
     // const sizeLabel = []
+    const costRangeList = {
+      "S": [0, 100],
+      "M": [100, 220],
+      "L": [220, Infinity],
+    }
     sizes.forEach(size => {
       // sizeLabel.push(size.textContent);
       size.addEventListener('click', () => {
-        let range = []
-        if (size.textContent[1] == "S") range = [-1, 100];
-        if (size.textContent[1] == "M") range = [100, 220];
-        if (size.textContent[1] == "L") range = [220, -1];
-        hub.publish(Events.StorageSpaceFilter, range);
+        let selected = []
+        const allBtns = this.#container.querySelectorAll('.size-group-input');
+        allBtns.forEach(btn => {
+          const input = btn.children[0];
+          if (input.checked) {
+            const currRange = costRangeList[btn.textContent[1]];
+            selected.push(currRange[0]);
+            selected.push(currRange[1]);
+          }
+        })
+        if (selected.length == 0) this.state.sizeRange = [-1, -1];
+        else this.state.sizeRange = [Math.min(...selected), Math.max(...selected)];
+        hub.publish(Events.StorageSpaceFilter, this.state.sizeRange);
       });
     });
     
+
+    const timeGroups = this.#container.querySelectorAll('.time-group-input');
+    timeGroups.forEach(timeInput => {
+      timeInput.addEventListener('click', () => {
+        let selected = [];
+        const allBtns = this.#container.querySelectorAll('.time-group-input');
+        allBtns.forEach(btn => {
+          const input = btn.children[0];
+          if (input.checked) selected.push(btn.textContent.trim());
+        });
+        hub.publish(Events.StorageTimeFilter, selected);
+      })
+    })
 
   }
   

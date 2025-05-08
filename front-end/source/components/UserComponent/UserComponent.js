@@ -93,10 +93,6 @@ export class UserComponent extends BaseComponent {
     this.list.classList.add('items-list');
     this.container.appendChild(this.list);
 
-    
-    // actions.append(this.btnList, this.btnDelete, this.btnStore);
-    // this.container.appendChild(actions);
-
     this.saleItemsBtn.click();
 
     return this.container;
@@ -118,15 +114,12 @@ export class UserComponent extends BaseComponent {
 
 
   async _loadItems(ownerEmail, path, type) {
-    console.log("in load items");
     this.list.innerHTML = '';
     this._clearError();
     try {
       const resp = await fetch(path);
-      console.log("response received in load items: ", resp);
       const result = await resp.json();
       const itemsArr = type == 'storage' ? result.listings : result.tasks;
-      console.log("items array: ", itemsArr);
 
       this.items = [];
       this.items = itemsArr.filter(t => t.owner === ownerEmail);
@@ -178,7 +171,6 @@ export class UserComponent extends BaseComponent {
   }
 
   _renderStorageItemRow(item) {
-    console.log("render storage item: ", item);
     const row = document.createElement('div');
     row.classList.add('item-row');
     row.dataset.id = item.id;
@@ -263,7 +255,6 @@ export class UserComponent extends BaseComponent {
     try {
       await Promise.all(ids.map(id => {
         let path = `${pathStr}/${id}`;
-        console.log("path: :", path);
         fetch(path, { method: 'DELETE' });
         if (storage) EventHub.getInstance().publish(Events.RemoveStorageItemSuccess);
       }));

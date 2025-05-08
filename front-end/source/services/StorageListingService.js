@@ -43,7 +43,6 @@ export class StorageListingService extends Service{
     async loadItemsFromDB(page) {
         this.page = page;
         const list = await this.loadAllItemsFromDB();
-        // console.log("list in loaditems from DB: ", typeof(list));
         return new Promise((resolve, _) => {
             resolve(list.slice(page*10, page*10 + 11))
         });
@@ -67,7 +66,6 @@ export class StorageListingService extends Service{
                 //gets items from API if it's the first time loading or if the listing was updated by some user
                 if (items.result.length == 0) {
                     this.fetchFromAPI().then(list => {
-                        // console.log("list in load all listings from DB: ", list);
                         const listedItems = list.filter(item => item.listed);
                         resolve(listedItems);
                         this.addListToDB(listedItems);
@@ -88,11 +86,8 @@ export class StorageListingService extends Service{
         return new Promise((resolve, reject) => {
             hub.subscribe(Events.LoadStorageServerSuccess, (data) => {
                 if (typeof(data) == String) reject(new Error("Error getting list from server.\n"));
-                // data.then(list => {
-                //     console.log("list from fetch: ", list);
-                //     resolve(list);
+                data = data.filter(item => item.listed);
                 resolve(data);
-                // }).catch((message) => console.error(message));
             });
             hub.publish(Events.LoadStorageServer);
         })
@@ -104,7 +99,6 @@ export class StorageListingService extends Service{
             const filtered = updatedList.filter(item => item.listed);
             await this.rewriteToDB(filtered);
             const finalList = await this.loadItemsFromDB(0);
-            console.log("final updated list: ", finalList);
             return finalList;
         } catch (err) {
             console.log("Error received while updating the list: ", err);
@@ -164,7 +158,6 @@ export class StorageListingService extends Service{
     //note: for now, we only accept cost in a particular format
     async filterListByPrice(order) {
         const list = await this.loadAllItemsFromDB();
-        // console.log("list in price filter function: ", list);
         const compareByPrice = (a, b) => {
             if (a.cost < b.cost) return order == "ascending" ? -1 : 1;
             if (a.cost > b.cost) return order == "ascending" ? 1 : -1;
@@ -193,12 +186,10 @@ export class StorageListingService extends Service{
 
     //need to find a more efficient algorithm - for next milestone
     async removeTag(tagList) {
-        console.log("in remove tage");
         const list = await this.fetchFromAPI();
         let filtered = []
         if (tagList.length == 0) {
             filtered = list;
-            console.log("here");
         } else {
             filtered = list.filter(item => {
                 const split = item.title.split(" ");
@@ -207,7 +198,6 @@ export class StorageListingService extends Service{
                 }).length !== 0;
             })
         }
-        console.log("filtered after removing tag: ", filtered);
         this.rewriteToDB(filtered);
         return new Promise((resolve, _) => {resolve(filtered.slice(this.page*10, this.page*10 + 11))});
     }
@@ -223,11 +213,37 @@ export class StorageListingService extends Service{
 
     async filterByCost(max) {
         const list = await this.loadAllItemsFromDB();
-        console.log("list in filter by cost: ", list);
         const filtered = list.filter(item => item.cost <= max);
+        this.rewriteToDB(filtered);
         return new Promise((resolve, _) => {resolve(filtered.slice(this.page*10, this.page*10 + 11))});
     }
     
+
+    async filterByTime(timeArr) {
+        const monthTimeMap = {
+            "jan": "Winter",
+            "feb": "Winter",
+            "march": "Spring",
+            "april": "Spring",
+            "may": "Spring",
+            "june":"Summer",
+            "july": "Summer",
+            "august": "Summer", 
+            "sep": "Fall",
+            "oct": "Fall",
+            "nov": "Winter",
+            "dec": "Winter",
+        }
+        const list = await this.loadAllItemsFromDB();
+        const filtered = list.filter(item => {
+            if (item.duration.toLowerCase() == "all year" || timeArr.length == 0) return true;
+            const duration = item.duration.split(" ")[0];
+            const currTime = monthTimeMap[duration.toLowerCase()];
+            return timeArr.includes(currTime);
+        })
+        this.rewriteToDB(filtered);
+        return new Promise((resolve, _) => {resolve(filtered.slice(this.page*10, this.page*10 + 11))});
+    }
 
     async getRecent() {
         const list = await this.fetchFromAPI();
@@ -240,7 +256,6 @@ export class StorageListingService extends Service{
         this.subscribe(Events.LoadStorageListings, (page) => {
             const list = this.loadItemsFromDB(page);
             list.then(items => {
-                // console.log("items in load storage listings initial load: ", items);
                 EventHub.getInstance().publish(Events.LoadStorageSuccess, items);
             }).catch(err => console.log(err));
         });
@@ -270,11 +285,6 @@ export class StorageListingService extends Service{
         });
 
         this.subscribe(Events.StorageUnfilteredList, async (page) => {
-            // const list = this.fetchFromAPI();
-            // list.then(items => {
-            //     // console.log("Unfiltered list: ", items);
-            //     EventHub.getInstance().publish(Events.LoadStorageSuccess, items.slice(this.page*10, this.page*10 + 11));
-            // }).catch(err => console.log(err));
             this.page = page;
             const list = await this.getRecent();
             EventHub.getInstance().publish(Events.LoadStorageSuccess, list);
@@ -295,7 +305,6 @@ export class StorageListingService extends Service{
         });
 
         this.subscribe(Events.StorageSpaceFilter, (spaceRange) => {
-            // console.log("space size range: ", spaceRange);
             const filtered = this.filterBySpace(spaceRange);
             filtered.then(list =>
                 EventHub.getInstance().publish(Events.LoadStorageSuccess, list)
@@ -305,6 +314,11 @@ export class StorageListingService extends Service{
         this.subscribe(Events.StorageCostFilter, async (max) => {
             const filtered = await this.filterByCost(max);
             EventHub.getInstance().publish(Events.LoadStorageSuccess, filtered);
+        })
+        
+        this.subscribe(Events.StorageTimeFilter, async (timeArr) => {
+            const data = await this.filterByTime(timeArr);
+            EventHub.getInstance().publish(Events.LoadStorageSuccess, data);
         })
     }
 }
