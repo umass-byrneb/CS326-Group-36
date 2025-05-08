@@ -3,25 +3,28 @@
 import Service from "./Service.js";
 import { Events } from "../eventhub/Events.js"
 import { EventHub } from "../eventhub/EventHub.js";
+import { StorageRepositoryFactory } from "./StorageListingFactory.js";
 
 export class StorageListingRemoteService extends Service {
     constructor() {
         super();
+        //initializing indexedDB
+        const local = StorageRepositoryFactory.get();
+        // local.register();
     }
 
     async loadTasks() {
         const response = await fetch("/v1/storage/listings");
-        // console.log("response: ", response);
         if (response.ok) {
-            const data = await response.text();
-            const output = JSON.parse(data);
-            return output.listings;
+            const {listings} = await response.json();
+            console.log("listings: ", listings);
+            return listings;
         }
         return "Error in loading tasks";
     }
 
     async addTasks(item) {
-        // console.log("item received from request: ", item);
+        console.log("item received from request: ", item);
         const response = await fetch("/v1/storage/listings", {
             method: "POST",
             headers: {
@@ -29,9 +32,10 @@ export class StorageListingRemoteService extends Service {
             },
             body: JSON.stringify(item),
         })
+        console.log("Response for POST storage: ", response);
         if (response.ok) {
-            const newItem = await response.text();
-            // console.log("item after adding: ", newItem);
+            const newItem = await response.json();
+            console.log("item after adding: ", newItem);
             return newItem;
         }
         return "Error in adding tasks";
@@ -58,8 +62,13 @@ export class StorageListingRemoteService extends Service {
     }
 
     addSubscriptions() {
-        this.subscribe(Events.LoadStorageServer, () => {
-            const data = this.loadTasks();
+        this.subscribe(Events.LoadAllListings, async() => {
+            const data = await this.loadTasks();
+            EventHub.getInstance().publish(Events.LoadAllListingsSuccess, data);
+        });
+        
+        this.subscribe(Events.LoadStorageServer, async () => {
+            const data = await this.loadTasks();
             EventHub.getInstance().publish(Events.LoadStorageServerSuccess, data);
         });
         this.subscribe(Events.AddStorageItem, (item) => {

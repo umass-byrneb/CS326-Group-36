@@ -3,7 +3,6 @@
 import { Events } from "../eventhub/Events.js"
 import { EventHub } from "../eventhub/EventHub.js";
 import Service from "./Service.js"
-import { StorageListingRemoteService } from "./StorageListingRemoteService.js";
 
 export class StorageListingService extends Service{
     constructor() {
@@ -18,7 +17,6 @@ export class StorageListingService extends Service{
     static register() {
         if (!StorageListingService.instance) {
             StorageListingService.instance = new StorageListingService();
-            const fakeServer = new StorageListingRemoteService();
         }
         return StorageListingService.instance;
     }
@@ -70,11 +68,12 @@ export class StorageListingService extends Service{
                 if (items.result.length == 0) {
                     this.fetchFromAPI().then(list => {
                         // console.log("list in load all listings from DB: ", list);
-                        resolve(list);
-                        this.addListToDB(list);
+                        const listedItems = list.filter(item => item.listed);
+                        resolve(listedItems);
+                        this.addListToDB(listedItems);
                     }).catch(err => reject(err));
                 } else {
-                    const list = items.result.map(obj => obj.storageItem);
+                    const list = items.result;
                     resolve(list);
                 }
             }
@@ -89,13 +88,28 @@ export class StorageListingService extends Service{
         return new Promise((resolve, reject) => {
             hub.subscribe(Events.LoadStorageServerSuccess, (data) => {
                 if (typeof(data) == String) reject(new Error("Error getting list from server.\n"));
-                data.then(list => {
-                    // console.log("list from fetch: ", list);
-                    resolve(list);
-                }).catch((message) => console.error(message));
+                // data.then(list => {
+                //     console.log("list from fetch: ", list);
+                //     resolve(list);
+                resolve(data);
+                // }).catch((message) => console.error(message));
             });
             hub.publish(Events.LoadStorageServer);
         })
+    }
+
+    async updateList() {
+        try {
+            const updatedList = await this.fetchFromAPI();
+            const filtered = updatedList.filter(item => item.listed);
+            await this.rewriteToDB(filtered);
+            const finalList = await this.loadItemsFromDB(0);
+            console.log("final updated list: ", finalList);
+            return finalList;
+        } catch (err) {
+            console.log("Error received while updating the list: ", err);
+
+        }
     }
 
     async addListToDB(list) {
@@ -109,8 +123,8 @@ export class StorageListingService extends Service{
             tran = this.db.transaction(this.storeName, "readwrite");
         }
         const objStore = tran.objectStore(this.storeName);
-        list.forEach((item, i) => {
-            objStore.add({id: i, storageItem: item})
+        list.forEach((item) => {
+            objStore.add({...item})
         });
 
         return new Promise((resolve, reject) => {
@@ -179,14 +193,21 @@ export class StorageListingService extends Service{
 
     //need to find a more efficient algorithm - for next milestone
     async removeTag(tagList) {
+        console.log("in remove tage");
         const list = await this.fetchFromAPI();
-        const filtered = list.filter(item => {
-            const split = item.title.split(" ");
-            return split.filter(word => {
-                return tagList.filter(tag => tag.toLowerCase() == word.toLowerCase()).length !== 0
-            }).length !== 0;
-        })
-        // console.log("filtered after removing tag: ", filtered);
+        let filtered = []
+        if (tagList.length == 0) {
+            filtered = list;
+            console.log("here");
+        } else {
+            filtered = list.filter(item => {
+                const split = item.title.split(" ");
+                return split.filter(word => {
+                    return tagList.filter(tag => tag.toLowerCase() == word.toLowerCase()).length !== 0
+                }).length !== 0;
+            })
+        }
+        console.log("filtered after removing tag: ", filtered);
         this.rewriteToDB(filtered);
         return new Promise((resolve, _) => {resolve(filtered.slice(this.page*10, this.page*10 + 11))});
     }
@@ -200,7 +221,20 @@ export class StorageListingService extends Service{
         return new Promise((resolve, _) => {resolve(filtered.slice(this.page*10, this.page*10 + 11))});
     }
 
+    async filterByCost(max) {
+        const list = await this.loadAllItemsFromDB();
+        console.log("list in filter by cost: ", list);
+        const filtered = list.filter(item => item.cost <= max);
+        return new Promise((resolve, _) => {resolve(filtered.slice(this.page*10, this.page*10 + 11))});
+    }
+    
 
+    async getRecent() {
+        const list = await this.fetchFromAPI();
+        list.reverse();
+        this.rewriteToDB(list);
+        return new Promise((resolve, _) => {resolve(list.slice(this.page*10, this.page*10 + 11))});
+    }
 
     addSubscriptions() {
         this.subscribe(Events.LoadStorageListings, (page) => {
@@ -209,6 +243,16 @@ export class StorageListingService extends Service{
                 // console.log("items in load storage listings initial load: ", items);
                 EventHub.getInstance().publish(Events.LoadStorageSuccess, items);
             }).catch(err => console.log(err));
+        });
+
+        this.subscribe(Events.UpdateStorageItemSuccess, async () => {
+            const list = await this.updateList();
+            EventHub.getInstance().publish(Events.LoadStorageSuccess, list);
+        });
+
+        this.subscribe(Events.RemoveStorageItemSuccess, async () => {
+            const list = await this.updateList();
+            EventHub.getInstance().publish(Events.LoadStorageSuccess, list);
         });
 
         this.subscribe(Events.StoragePriceAscend, () => {
@@ -225,12 +269,15 @@ export class StorageListingService extends Service{
             })
         });
 
-        this.subscribe(Events.StorageUnfilteredList, (page) => {
-            const list = this.fetchFromAPI();
-            list.then(items => {
-                // console.log("Unfiltered list: ", items);
-                EventHub.getInstance().publish(Events.LoadStorageSuccess, items.slice(this.page*10, this.page*10 + 11));
-            }).catch(err => console.log(err));
+        this.subscribe(Events.StorageUnfilteredList, async (page) => {
+            // const list = this.fetchFromAPI();
+            // list.then(items => {
+            //     // console.log("Unfiltered list: ", items);
+            //     EventHub.getInstance().publish(Events.LoadStorageSuccess, items.slice(this.page*10, this.page*10 + 11));
+            // }).catch(err => console.log(err));
+            this.page = page;
+            const list = await this.getRecent();
+            EventHub.getInstance().publish(Events.LoadStorageSuccess, list);
         });
 
         this.subscribe(Events.StorageFilterAddTag, (value) => {
@@ -253,6 +300,11 @@ export class StorageListingService extends Service{
             filtered.then(list =>
                 EventHub.getInstance().publish(Events.LoadStorageSuccess, list)
             )
+        })
+
+        this.subscribe(Events.StorageCostFilter, async (max) => {
+            const filtered = await this.filterByCost(max);
+            EventHub.getInstance().publish(Events.LoadStorageSuccess, filtered);
         })
     }
 }
