@@ -7,9 +7,11 @@ import { UserComponent } from './components/UserComponent/UserComponent.js';
 import { LoginComponent } from './components/LoginComponent/LoginComponent.js';
 import { RegisterComponent } from './components/RegisterComponent/RegisterComponent.js';
 import { TaskRepositoryFactory } from './services/TaskRepositoryFactory.js';
+import { StorageRepositoryFactory } from './services/StorageListingFactory.js';
 
 const app = document.getElementById('app');
 const taskRepo = TaskRepositoryFactory.get('remote');
+const storageFactory = StorageRepositoryFactory.get('remote');
 
 function renderNavbar(isLanding) {
   const existingNav = document.querySelector('.navbar');
