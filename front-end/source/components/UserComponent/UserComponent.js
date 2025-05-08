@@ -274,7 +274,7 @@ export class UserComponent extends BaseComponent {
     }
     const selected = this.items
       .filter(item => ids.includes(item.id))
-      .map(item => ({ id: item.id, name: item.name }));
+      // .map(item => ({ id: item.id, name: item.name }));
     localStorage.setItem('toStoreItems', JSON.stringify(selected));
     window.location.hash = '#storage';
   }

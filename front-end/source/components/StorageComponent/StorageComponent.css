@@ -204,3 +204,31 @@ h3 {
   margin-top: 1em;
   margin-right: 1em;
 }
+
+.item-row, .item-row-span {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-right: 0.5em;
+}
+
+/* .item-row-span { */
+  /* display: flex;
+  align-items: center;
+  just
+} */
+
+.user-item-input {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 0.5em;
+}
+
+.item-image {
+  width: 100%;          
+  max-width: 100px;     
+  max-height: 80px;    
+  height: auto;         
+  object-fit: contain;  
+}

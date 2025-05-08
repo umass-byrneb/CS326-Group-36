@@ -327,13 +327,13 @@ export class StorageComponent extends BaseComponent {
     const storeButton = document.createElement('button');
     storeButton.classList.add('store-item-modal', 'toggle', 'modal-button');
     storeButton.textContent = ' Store Selected Item';
-    closeButton.addEventListener('click', () => {
+    storeButton.addEventListener('click', () => {
       const selectedItems = this.#getSelectedIds();
       selectedItems.forEach(selected => {
-        const itemIndex = storedItems.findIndex(item => item.id === selected.id);
+        const itemIndex = userList.filter(item => item.id === selected.id)[0];
         if (itemIndex == -1) console.log("item not found");
-        storedItems.splice(itemIndex, 1);
-        localStorage.setItem('toStoreItem', JSON.stringify(storedItems));
+        userList.splice(itemIndex, 1);
+        localStorage.setItem('toStoreItems', JSON.stringify(userList));
       })
       this.modalOverlay.style.display = 'none';
     });
@@ -356,7 +356,7 @@ export class StorageComponent extends BaseComponent {
     if (!currentUser) {
       return null;  // User is not logged in
     }
-    const toStoreItems = JSON.parse(localStorage.getItem('toStoreItem')) || [];
+    const toStoreItems = JSON.parse(localStorage.getItem('toStoreItems')) || [];
     return toStoreItems;
   }
 
@@ -365,11 +365,13 @@ export class StorageComponent extends BaseComponent {
     row.classList.add('item-row');
     row.dataset.id = item.id;
 
+    const rowSpan = document.createElement('span');
+    rowSpan.classList.add('item-row-span');
     const img = document.createElement('img');
     img.src = item.image;
     img.alt = item.name;
     img.classList.add('item-image');
-    row.appendChild(img);
+    rowSpan.appendChild(img);
 
     const details = document.createElement('div');
     details.classList.add('item-details');
@@ -379,13 +381,13 @@ export class StorageComponent extends BaseComponent {
       <p>Cost: ${item.cost}</p>
       <p>Tag: ${item.tag}</p>
       <p>Delivery: ${item.delivery}</p>
-      <p>Listed: ${item.listed ? 'Yes' : 'No'}</p>
     `;
-    row.appendChild(details);
+    rowSpan.appendChild(details);
 
     const cbContainer = document.createElement('div');
     cbContainer.classList.add('item-checkbox');
-    const checkbox = document.createElement('user-item-input');
+    const checkbox = document.createElement('input');
+    checkbox.classList.add('user-item-input');
     checkbox.type = 'checkbox';
     checkbox.addEventListener('change', () => {
       const has = this.#getSelectedIds().length > 0;
@@ -394,13 +396,14 @@ export class StorageComponent extends BaseComponent {
       storeButton.disabled = !has;
     });
     cbContainer.appendChild(checkbox);
-    row.appendChild(cbContainer);
+    rowSpan.appendChild(cbContainer);
+    row.appendChild(rowSpan);
     return row;
   }
 
   #getSelectedIds() {
-    return Array.from(this.list.querySelectorAll('.item-row'))
-      .filter(r => r.querySelector('user-item-input').checked)
+    return Array.from(document.querySelector('.item-list').querySelectorAll('.item-row'))
+      .filter(r => r.querySelector('.user-item-input').checked)
       .map(r => Number(r.dataset.id));
   }
 
@@ -439,14 +442,12 @@ export class StorageComponent extends BaseComponent {
 
     //sidebar filters: storage space
     const sizes = this.#container.querySelectorAll('.size-group-input');
-    // const sizeLabel = []
     const costRangeList = {
       "S": [0, 100],
       "M": [100, 220],
       "L": [220, Infinity],
     }
     sizes.forEach(size => {
-      // sizeLabel.push(size.textContent);
       size.addEventListener('click', () => {
         let selected = []
         const allBtns = this.#container.querySelectorAll('.size-group-input');
