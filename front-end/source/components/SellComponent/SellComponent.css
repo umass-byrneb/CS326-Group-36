@@ -25,6 +25,15 @@
   margin-left: 2rem;
 }
 
+.button-container .button {
+  background-color: #D58936;
+  border: 1px solid #D58936;
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
 .sell-image {
   width: 100%;
   max-width: 500px;

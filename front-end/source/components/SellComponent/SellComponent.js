@@ -278,7 +278,7 @@ export class SellComponent extends BaseComponent {
         placeholder: 'Enter Storage title',
         required: true
       });
-      details.appendChild(this.makeField('Product Name: ', titleInput));
+      details.appendChild(this.makeField('Title: ', titleInput));
 
       const durationInput = Object.assign(document.createElement('input'), {
         type: 'text',
@@ -314,16 +314,18 @@ export class SellComponent extends BaseComponent {
 
       details.appendChild(row);
   
-      const contactSelect = document.createElement('select');
+      const contactSelect = document.createElement('textarea');
       contactSelect.id = 'contact';
       contactSelect.required = true;
-      ['Select Contact','Only Text Message','Only Phone Number','Both']
-        .forEach(opt => {
-          const o = document.createElement('option');
-          o.textContent = opt;
-          if (opt === 'Select Contact') { o.disabled = true; o.selected = true; }
-          contactSelect.appendChild(o);
-        });
+      contactSelect.placeholder = 'Enter email or phone number';
+      contactSelect.rows = 1;
+      // ['Select Contact','Only Text Message','Only Phone Number','Both']
+      //   .forEach(opt => {
+      //     const o = document.createElement('option');
+      //     o.textContent = opt;
+      //     if (opt === 'Select Contact') { o.disabled = true; o.selected = true; }
+      //     contactSelect.appendChild(o);
+      //   });
       details.appendChild(this.makeField('Contact: ', contactSelect));
   
       const descInput = document.createElement('textarea');
@@ -379,18 +381,19 @@ export class SellComponent extends BaseComponent {
         const payload = {
           title: titleInput.value.trim(),
           duration: durationInput.value,
-          cost: `$${parseFloat(costInput.value).toFixed(2)}`,
-          size: sizeInput.value,
+          cost: parseFloat(costInput.value).toFixed(2),
+          size: parseFloat(sizeInput.value).toFixed(2),
           contact: contactSelect.value,
           description: descInput.value.trim(),
           image: img.src,
           owner: user.email,
-          listed: false 
+          listed: false, 
         };
         try {
           const hub = EventHub.getInstance();
           hub.subscribe(Events.AddStorageItemSuccess, (item) => {
             if (typeof(item) == "String") throw new Error('Save failed');
+            console.log("new item after adding to the db: ", item)
             alert('Item saved successfully! You can list it for sale from your dashboard.');
             window.location.hash = '#user';
           })
