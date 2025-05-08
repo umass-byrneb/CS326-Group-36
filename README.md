@@ -8,6 +8,8 @@
 - [Milestone #4](https://github.com/umass-byrneb/CS326-Group-36/blob/main/docs/milestone_4/Milestone4_Group36.pdf)
 - [Milestone #5](https://github.com/umass-byrneb/CS326-Group-36/blob/main/docs/milestone_5/Milestone5_Group36.pdf)
 - [Milestone #6](https://github.com/umass-byrneb/CS326-Group-36/blob/main/docs/milestone_6/Milestone6_Group36.pdf)
+- [Milestone #7](https://github.com/umass-byrneb/CS326-Group-36/blob/main/docs/milestone_7/Milestone7_Group36.pdf)
+
 ## How to Run
 git clone https://github.com/umass-byrneb/CS326-Group-36.git  
 cd CS326-Group-36  
@@ -23,7 +25,7 @@ npm run dev
 ## Project Description 
 **Problem:** Every year students buy new furniture every year to offset costs of storage and leading to tons of waste at the end of every semester.\
 **Solution:** CollegeClutter is a website designed to connect students to other students and local storage facilities to collectively create optimal storage/selling opportunities.\
-**Key Features:** The website will be a lightweight platform that will use collective data from user inputs to generate optimal storage options with other users and local storage facilities. The user will have a SPA interface to use commonplace data on furniture sets for ease of use and fast adoption. Users can list housing items for sale or buy items using the simple interface. \
+**Key Features:** CollegeClutter leverages robust technical foundations including SQLite with Sequelize ORM for reliable and persistent backend storage. It employs secure bcrypt-based password hashing for user authentication, ensuring sensitive data protection. The application utilizes a modern RESTful API, offering seamless integration between clearly separated front-end and back-end components. Client-side validation and comprehensive server-side error handling enhance overall application robustness. It features dynamic content updates, real-time filtering, sorting, and inline notifications to create an interactive, responsive user experience, all built within a structured, scalable, and maintainable codebase. \
 **Why This Project?:** Waste and cost of living are both increasing at remarkable rate for students at Amherst. By offering a reasonable storage option we can give students an option to reduce costs between semesters and save on massive waste while improving local business outcomes during the down season.
 
 ## Team Members
